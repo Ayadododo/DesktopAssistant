@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=800, height=600, initial-scale=1.0">
+    <title>型号管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f8 100%);
+            width: 800px;
+            height: 600px;
+            overflow: hidden;
+            color: #333;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 12px;
+        }
+        
+        /* 头部区域 */
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            color: #1e40af;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .header h1::before {
+            content: "📦";
+            font-size: 24px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        
+        /* 筛选区域 */
+        .filter-section {
+            background: white;
+            border-radius: 16px;
+            padding: 14px 20px;
+            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 36px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 13px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        
+        .search-box input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            opacity: 0.5;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .filter-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        select {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            outline: none;
+            min-width: 100px;
+        }
+        
+        select:focus {
+            border-color: #3b82f6;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .toolbar {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafbfc;
+        }
+        
+        .toolbar-info {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .toolbar-info span {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        .toolbar-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        /* 列表区域 */
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        
+        .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .list-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .list-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .model-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .model-card {
+            background: white;
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 14px 16px;
+            cursor: move;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+        
+        .model-card:hover {
+            border-color: #bfdbfe;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .model-card.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+        
+        .model-card.drag-over {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .drag-handle {
+            color: #cbd5e1;
+            font-size: 16px;
+            cursor: grab;
+            padding: 4px;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        .model-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .model-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .model-id {
+            font-size: 11px;
+            color: #94a3b8;
+            background: #f8fafc;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .model-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .category-tag {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .tag-electronic {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .tag-mechanical {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        
+        .tag-accessory {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        
+        .tag-component {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+        
+        .model-actions {
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .model-card:hover .model-actions {
+            opacity: 1;
+        }
+        
+        .btn-icon {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .btn-edit {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+        
+        .btn-edit:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        
+        .btn-delete:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            gap: 12px;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            opacity: 0.3;
+        }
+        
+        .empty-text {
+            font-size: 14px;
+        }
+        
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 480px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: modalSlide 0.3s ease;
+        }
+        
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .attributes-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+        
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .attr-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .attr-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .attr-item input {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        
+        .btn-add-attr {
+            padding: 6px 12px;
+            background: #eff6ff;
+            color: #3b82f6;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-add-attr:hover {
+            background: #dbeafe;
+        }
+        
+        .btn-remove-attr {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: #fef2f2;
+            color: #ef4444;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Toast 提示 */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .toast {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            animation: toastSlide 0.3s ease;
+            min-width: 200px;
+        }
+        
+        @keyframes toastSlide {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+        
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>型号管理系统</h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="refreshData()">
+                    <span>🔄</span> 刷新
+                </button>
+                <button class="btn btn-primary" onclick="openModal()">
+                    <span>+</span> 新增型号
+                </button>
+            </div>
+        </div>
+        
+        <!-- 筛选区域 -->
+        <div class="filter-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索型号名称、ID或属性..." oninput="handleSearch()">
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">分类:</span>
+                <select id="categoryFilter" onchange="handleFilter()">
+                    <option value="">全部分类</option>
+                    <option value="electronic">电子类</option>
+                    <option value="mechanical">机械类</option>
+                    <option value="accessory">配件类</option>
+                    <option value="component">元器件</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">状态:</span>
+                <select id="statusFilter" onchange="handleFilter()">
+                    <option value="">全部状态</option>
+                    <option value="active">在用</option>
+                    <option value="deprecated">停用</option>
+                    <option value="draft">草稿</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="toolbar">
+                <div class="toolbar-info">
+                    共 <span id="totalCount">0</span> 个型号
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="exportData()">
+                        <span>📥</span> 导出
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="importData()">
+                        <span>📤</span> 导入
+                    </button>
+                </div>
+            </div>
+            <div class="list-container">
+                <div class="model-list" id="modelList">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 模态框 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">新增型号</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="modelForm">
+                    <input type="hidden" id="modelId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">型号名称 *</label>
+                            <input type="text" class="form-input" id="modelName" required placeholder="输入型号名称">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">型号编码 *</label>
+                            <input type="text" class="form-input" id="modelCode" required placeholder="输入型号编码">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">分类</label>
+                            <select class="form-select" id="modelCategory">
+                                <option value="electronic">电子类</option>
+                                <option value="mechanical">机械类</option>
+                                <option value="accessory">配件类</option>
+                                <option value="component">元器件</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">状态</label>
+                            <select class="form-select" id="modelStatus">
+                                <option value="active">在用</option>
+                                <option value="deprecated">停用</option>
+                                <option value="draft">草稿</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">规格描述</label>
+                        <input type="text" class="form-input" id="modelSpec" placeholder="输入规格描述">
+                    </div>
+                    
+                    <div class="attributes-section">
+                        <div class="section-title">
+                            <span>扩展属性</span>
+                            <button type="button" class="btn-add-attr" onclick="addAttributeField()">+ 添加属性</button>
+                        </div>
+                        <div class="attr-list" id="attrList">
+                            <!-- 动态生成 -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveModel()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ==================== 数据层 ====================
+        // 内置测试数据
+        let modelData = [
+            {
+                id: "MDL-2024-001",
+                name: "高精度压力传感器",
+                code: "PS-100-A",
+                category: "electronic",
+                status: "active",
+                spec: "0-10MPa, 4-20mA输出",
+                attributes: {
+                    "精度": "±0.1%",
+                    "工作温度": "-40~85°C",
+                    "供电电压": "24V DC"
+                },
+                createTime: "2024-01-15",
+                updateTime: "2024-02-20"
+            },
+            {
+                id: "MDL-2024-002",
+                name: "伺服电机驱动器",
+                code: "SV-200-B",
+                category: "electronic",
+                status: "active",
+                spec: "2kW, 三相380V",
+                attributes: {
+                    "额定功率": "2kW",
+                    "控制方式": "矢量控制",
+                    "通讯接口": "RS485/CAN"
+                },
+                createTime: "2024-01-20",
+                updateTime: "2024-03-05"
+            },
+            {
+                id: "MDL-2024-003",
+                name: "液压油缸组件",
+                code: "HC-300-C",
+                category: "mechanical",
+                status: "active",
+                spec: "缸径100mm, 行程500mm",
+                attributes: {
+                    "工作压力": "21MPa",
+                    "材质": "45#钢",
+                    "密封形式": "Y型密封"
+                },
+                createTime: "2024-02-01",
+                updateTime: "2024-02-28"
+            },
+            {
+                id: "MDL-2024-004",
+                name: "工业连接器",
+                code: "CN-400-D",
+                category: "component",
+                status: "draft",
+                spec: "M12, 8芯, IP67",
+                attributes: {
+                    "防护等级": "IP67",
+                    "额定电流": "4A",
+                    "插拔次数": "≥5000"
+                },
+                createTime: "2024-02-10",
+                updateTime: "2024-02-10"
+            },
+            {
+                id: "MDL-2024-005",
+                name: "温度变送器",
+                code: "TT-500-E",
+                category: "electronic",
+                status: "deprecated",
+                spec: "PT100, -50~200°C",
+                attributes: {
+                    "测量范围": "-50~200°C",
+                    "输出信号": "4-20mA",
+                    "精度等级": "0.5级"
+                },
+                createTime: "2023-12-01",
+                updateTime: "2024-01-30"
+            },
+            {
+                id: "MDL-2024-006",
+                name: "机械密封件",
+                code: "MS-600-F",
+                category: "accessory",
+                status: "active",
+                spec: "内径35mm, 外径55mm",
+                attributes: {
+                    "材质": "碳化硅/石墨",
+                    "适用介质": "水、油",
+                    "最高转速": "3000rpm"
+                },
+                createTime: "2024-02-15",
+                updateTime: "2024-03-01"
+            }
+        ];
+        
+        // 当前编辑的索引
+        let editingIndex = -1;
+        let draggedIndex = null;
+        
+        // ==================== Electron 通信接口 ====================
+        // 预留接口：与 Electron 主进程通信
+        const electronAPI = {
+            // 获取型号数据
+            async getModels() {
+                // TODO: 替换为实际的 Electron IPC 调用
+                // return await window.electron.invoke('get-models');
+                return modelData;
+            },
+            
+            // 保存型号数据
+            async saveModels(data) {
+                // TODO: 替换为实际的 Electron IPC 调用
+                // return await window.electron.invoke('save-models', data);
+                modelData = data;
+                return { success: true };
+            },
+            
+            // 导出数据
+            async exportData(data) {
+                // TODO: 替换为实际的 Electron IPC 调用
+                // return await window.electron.invoke('export-data', data);
+                console.log('Export data:', data);
+                return { success: true };
+            },
+            
+            // 导入数据
+            async importData() {
+                // TODO: 替换为实际的 Electron IPC 调用
+                // return await window.electron.invoke('import-data');
+                return { success: true, data: [] };
+            }
+        };
+        
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadData();
+            renderList();
+        });
+        
+        async function loadData() {
+            try {
+                // 尝试从 Electron 获取数据
+                const data = await electronAPI.getModels();
+                if (data && data.length > 0) {
+                    modelData = data;
+                }
+            } catch (error) {
+                console.log('使用本地测试数据');
+            }
+        }
+        
+        // ==================== 渲染 ====================
+        function renderList() {
+            const listEl = document.getElementById('modelList');
+            const filteredData = getFilteredData();
+            
+            document.getElementById('totalCount').textContent = filteredData.length;
+            
+            if (filteredData.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div class="empty-text">暂无型号数据</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            listEl.innerHTML = filteredData.map((item, index) => `
+                <div class="model-card" draggable="true" data-index="${index}" data-id="${item.id}">
+                    <div class="drag-handle">⋮⋮</div>
+                    <div class="model-info">
+                        <div class="model-name">
+                            ${item.name}
+                            <span class="model-id">${item.id}</span>
+                            <span class="category-tag tag-${item.category}">${getCategoryName(item.category)}</span>
+                        </div>
+                        <div class="model-meta">
+                            <span class="meta-item">📋 ${item.code}</span>
+                            <span class="meta-item">📐 ${item.spec || '无规格'}</span>
+                            <span class="meta-item">📅 ${item.updateTime}</span>
+                            <span class="meta-item">${getStatusIcon(item.status)} ${getStatusName(item.status)}</span>
+                        </div>
+                    </div>
+                    <div class="model-actions">
+                        <button class="btn-icon btn-edit" onclick="editModel('${item.id}')" title="编辑">✏️</button>
+                        <button class="btn-icon btn-delete" onclick="deleteModel('${item.id}')" title="删除">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 绑定拖拽事件
+            bindDragEvents();
+        }
+        
+        function getFilteredData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            return modelData.filter(item => {
+                const matchSearch = !searchTerm || 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.id.toLowerCase().includes(searchTerm) ||
+                    item.code.toLowerCase().includes(searchTerm) ||
+                    Object.values(item.attributes || {}).some(v => 
+                        v.toLowerCase().includes(searchTerm)
+                    );
+                
+                const matchCategory = !category || item.category === category;
+                const matchStatus = !status || item.status === status;
+                
+                return matchSearch && matchCategory && matchStatus;
+            });
+        }
+        
+        function getCategoryName(category) {
+            const map = {
+                'electronic': '电子类',
+                'mechanical': '机械类',
+                'accessory': '配件类',
+                'component': '元器件'
+            };
+            return map[category] || category;
+        }
+        
+        function getStatusName(status) {
+            const map = {
+                'active': '在用',
+                'deprecated': '停用',
+                'draft': '草稿'
+            };
+            return map[status] || status;
+        }
+        
+        function getStatusIcon(status) {
+            const map = {
+                'active': '✅',
+                'deprecated': '⛔',
+                'draft': '📝'
+            };
+            return map[status] || '⚪';
+        }
+        
+        // ==================== 拖拽排序 ====================
+        function bindDragEvents() {
+            const cards = document.querySelectorAll('.model-card');
+            
+            cards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragenter', handleDragEnter);
+                card.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+        
+        function handleDragStart(e) {
+            draggedIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.model-card').forEach(card => {
+                card.classList.remove('drag-over');
+            });
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+        
+        function handleDragEnter(e) {
+            e.preventDefault();
+            if (parseInt(this.dataset.index) !== draggedIndex) {
+                this.classList.add('drag-over');
+            }
+        }
+        
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            const targetIndex = parseInt(this.dataset.index);
+            if (draggedIndex === null || draggedIndex === targetIndex) return;
+            
+            // 获取当前过滤后的数据
+            const filteredData = getFilteredData();
+            const draggedItem = filteredData[draggedIndex];
+            const targetItem = filteredData[targetIndex];
+            
+            // 在原始数据中找到索引
+            const originalDraggedIndex = modelData.findIndex(item => item.id === draggedItem.id);
+            const originalTargetIndex = modelData.findIndex(item => item.id === targetItem.id);
+            
+            // 交换位置
+            const [removed] = modelData.splice(originalDraggedIndex, 1);
+            modelData.splice(originalTargetIndex, 0, removed);
+            
+            saveData();
+            renderList();
+            showToast('排序已更新', 'success');
+        }
+        
+        // ==================== 搜索和筛选 ====================
+        function handleSearch() {
+            renderList();
+        }
+        
+        function handleFilter() {
+            renderList();
+        }
+        
+        // ==================== 模态框操作 ====================
+        function openModal(modelId = null) {
+            const modal = document.getElementById('modalOverlay');
+            const title = document.getElementById('modalTitle');
+            const form = document.getElementById('modelForm');
+            
+            if (modelId) {
+                title.textContent = '编辑型号';
+                editingIndex = modelData.findIndex(item => item.id === modelId);
+                const model = modelData[editingIndex];
+                
+                document.getElementById('modelId').value = model.id;
+                document.getElementById('modelName').value = model.name;
+                document.getElementById('modelCode').value = model.code;
+                document.getElementById('modelCategory').value = model.category;
+                document.getElementById('modelStatus').value = model.status;
+                document.getElementById('modelSpec').value = model.spec || '';
+                
+                // 渲染属性
+                renderAttributes(model.attributes || {});
+            } else {
+                title.textContent = '新增型号';
+                editingIndex = -1;
+                form.reset();
+                document.getElementById('modelId').value = '';
+                renderAttributes({});
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+        
+        function closeModalOnOverlay(e) {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        }
+        
+        // ==================== 属性管理 ====================
+        function renderAttributes(attributes) {
+            const container = document.getElementById('attrList');
+            const entries = Object.entries(attributes);
+            
+            if (entries.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = entries.map(([key, value], index) => `
+                <div class="attr-item">
+                    <input type="text" placeholder="属性名" value="${key}" class="attr-key">
+                    <input type="text" placeholder="属性值" value="${value}" class="attr-value">
+                    <button type="button" class="btn-remove-attr" onclick="removeAttributeField(this)">×</button>
+                </div>
+            `).join('');
+        }
+        
+        function addAttributeField() {
+            const container = document.getElementById('attrList');
+            const div = document.createElement('div');
+            div.className = 'attr-item';
+            div.innerHTML = `
+                <input type="text" placeholder="属性名" class="attr-key">
+                <input type="text" placeholder="属性值" class="attr-value">
+                <button type="button" class="btn-remove-attr" onclick="removeAttributeField(this)">×</button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeAttributeField(btn) {
+            btn.parentElement.remove();
+        }
+        
+        function getAttributesFromForm() {
+            const attributes = {};
+            document.querySelectorAll('.attr-item').forEach(item => {
+                const key = item.querySelector('.attr-key').value.trim();
+                const value = item.querySelector('.attr-value').value.trim();
+                if (key && value) {
+                    attributes[key] = value;
+                }
+            });
+            return attributes;
+        }
+        
+        // ==================== 数据操作 ====================
+        async function saveModel() {
+            const name = document.getElementById('modelName').value.trim();
+            const code = document.getElementById('modelCode').value.trim();
+            
+            if (!name || !code) {
+                showToast('请填写必填项', 'error');
+                return;
+            }
+            
+            const now = new Date().toISOString().split('T')[0];
+            const model = {
+                id: editingIndex >= 0 ? modelData[editingIndex].id : generateId(),
+                name: name,
+                code: code,
+                category: document.getElementById('modelCategory').value,
+                status: document.getElementById('modelStatus').value,
+                spec: document.getElementById('modelSpec').value.trim(),
+                attributes: getAttributesFromForm(),
+                createTime: editingIndex >= 0 ? modelData[editingIndex].createTime : now,
+                updateTime: now
+            };
+            
+            if (editingIndex >= 0) {
+                modelData[editingIndex] = model;
+                showToast('型号已更新', 'success');
+            } else {
+                modelData.push(model);
+                showToast('型号已添加', 'success');
+            }
+            
+            await saveData();
+            closeModal();
+            renderList();
+        }
+        
+        function editModel(id) {
+            openModal(id);
+        }
+        
+        async function deleteModel(id) {
+            if (!confirm('确定要删除这个型号吗？')) return;
+            
+            const index = modelData.findIndex(item => item.id === id);
+            if (index > -1) {
+                modelData.splice(index, 1);
+                await saveData();
+                renderList();
+                showToast('型号已删除', 'success');
+            }
+        }
+        
+        function generateId() {
+            const prefix = 'MDL';
+            const year = new Date().getFullYear();
+            const random = Math.floor(Math.random() * 900 + 100);
+            const existingIds = modelData.map(m => m.id);
+            let newId = `${prefix}-${year}-${random}`;
+            while (existingIds.includes(newId)) {
+                newId = `${prefix}-${year}-${Math.floor(Math.random() * 900 + 100)}`;
+            }
+            return newId;
+        }
+        
+        async function saveData() {
+            try {
+                await electronAPI.saveModels(modelData);
+            } catch (error) {
+                console.error('保存失败:', error);
+            }
+        }
+        
+        async function refreshData() {
+            await loadData();
+            renderList();
+            showToast('数据已刷新', 'success');
+        }
+        
+        async function exportData() {
+            try {
+                await electronAPI.exportData(modelData);
+                showToast('数据导出成功', 'success');
+            } catch (error) {
+                showToast('导出失败', 'error');
+            }
+        }
+        
+        async function importData() {
+            try {
+                const result = await electronAPI.importData();
+                if (result.success && result.data) {
+                    modelData = result.data;
+                    saveData();
+                    renderList();
+                    showToast('数据导入成功', 'success');
+                }
+            } catch (error) {
+                showToast('导入失败', 'error');
+            }
+        }
+        
+        // ==================== 提示消息 ====================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️'
+            };
+            
+            toast.innerHTML = `
+                <span>${icons[type]}</span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
