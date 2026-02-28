@@ -2,1294 +2,709 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=800, height=600, initial-scale=1.0">
-    <title>型号管理系统</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8f0f8 100%);
-            width: 800px;
-            height: 600px;
-            overflow: hidden;
-            color: #333;
-        }
-        
-        .container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            gap: 12px;
-        }
-        
-        /* 头部区域 */
-        .header {
-            background: white;
-            border-radius: 16px;
-            padding: 16px 20px;
-            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 {
-            font-size: 20px;
-            color: #1e40af;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .header h1::before {
-            content: "📦";
-            font-size: 24px;
-        }
-        
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-        
-        .btn-secondary {
-            background: #f1f5f9;
-            color: #475569;
-        }
-        
-        .btn-secondary:hover {
-            background: #e2e8f0;
-        }
-        
-        /* 筛选区域 */
-        .filter-section {
-            background: white;
-            border-radius: 16px;
-            padding: 14px 20px;
-            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .search-box {
-            flex: 1;
-            min-width: 200px;
-            position: relative;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 10px 14px 10px 36px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 13px;
-            transition: all 0.2s;
-            outline: none;
-        }
-        
-        .search-box input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 14px;
-            opacity: 0.5;
-        }
-        
-        .filter-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        
-        .filter-label {
-            font-size: 12px;
-            color: #64748b;
-            font-weight: 500;
-        }
-        
-        select {
-            padding: 8px 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 13px;
-            background: white;
-            cursor: pointer;
-            outline: none;
-            min-width: 100px;
-        }
-        
-        select:focus {
-            border-color: #3b82f6;
-        }
-        
-        /* 主内容区域 */
-        .main-content {
-            flex: 1;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(59, 130, 246, 0.08);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .toolbar {
-            padding: 12px 20px;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fafbfc;
-        }
-        
-        .toolbar-info {
-            font-size: 12px;
-            color: #64748b;
-        }
-        
-        .toolbar-info span {
-            color: #3b82f6;
-            font-weight: 600;
-        }
-        
-        .toolbar-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        
-        /* 列表区域 */
-        .list-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-        }
-        
-        .list-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .list-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 3px;
-        }
-        
-        .list-container::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        
-        .model-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .model-card {
-            background: white;
-            border: 2px solid #f1f5f9;
-            border-radius: 12px;
-            padding: 14px 16px;
-            cursor: move;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: relative;
-        }
-        
-        .model-card:hover {
-            border-color: #bfdbfe;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
-            transform: translateX(4px);
-        }
-        
-        .model-card.dragging {
-            opacity: 0.5;
-            transform: rotate(2deg);
-        }
-        
-        .model-card.drag-over {
-            border-color: #3b82f6;
-            background: #eff6ff;
-        }
-        
-        .drag-handle {
-            color: #cbd5e1;
-            font-size: 16px;
-            cursor: grab;
-            padding: 4px;
-        }
-        
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-        
-        .model-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .model-name {
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .model-id {
-            font-size: 11px;
-            color: #94a3b8;
-            background: #f8fafc;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-        
-        .model-meta {
-            display: flex;
-            gap: 12px;
-            font-size: 12px;
-            color: #64748b;
-        }
-        
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .category-tag {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        
-        .tag-electronic {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-        
-        .tag-mechanical {
-            background: #dcfce7;
-            color: #15803d;
-        }
-        
-        .tag-accessory {
-            background: #fef3c7;
-            color: #b45309;
-        }
-        
-        .tag-component {
-            background: #f3e8ff;
-            color: #7c3aed;
-        }
-        
-        .model-actions {
-            display: flex;
-            gap: 6px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .model-card:hover .model-actions {
-            opacity: 1;
-        }
-        
-        .btn-icon {
-            width: 28px;
-            height: 28px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-        
-        .btn-edit {
-            background: #eff6ff;
-            color: #3b82f6;
-        }
-        
-        .btn-edit:hover {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .btn-delete {
-            background: #fef2f2;
-            color: #ef4444;
-        }
-        
-        .btn-delete:hover {
-            background: #ef4444;
-            color: white;
-        }
-        
-        /* 空状态 */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #94a3b8;
-            gap: 12px;
-        }
-        
-        .empty-icon {
-            font-size: 48px;
-            opacity: 0.3;
-        }
-        
-        .empty-text {
-            font-size: 14px;
-        }
-        
-        /* 模态框 */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        .modal-overlay.active {
-            display: flex;
-        }
-        
-        .modal {
-            background: white;
-            border-radius: 16px;
-            width: 480px;
-            max-height: 90vh;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-            animation: modalSlide 0.3s ease;
-        }
-        
-        @keyframes modalSlide {
-            from {
-                opacity: 0;
-                transform: translateY(-20px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        
-        .modal-close {
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: #f1f5f9;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 18px;
-            color: #64748b;
-            transition: all 0.2s;
-        }
-        
-        .modal-close:hover {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
-        
-        .modal-body {
-            padding: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .form-group {
-            margin-bottom: 16px;
-        }
-        
-        .form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 6px;
-        }
-        
-        .form-input, .form-select {
-            width: 100%;
-            padding: 10px 14px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.2s;
-            outline: none;
-        }
-        
-        .form-input:focus, .form-select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        
-        .attributes-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #f1f5f9;
-        }
-        
-        .section-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .attr-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .attr-item {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 8px;
-            align-items: center;
-        }
-        
-        .attr-item input {
-            padding: 8px 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 13px;
-        }
-        
-        .btn-add-attr {
-            padding: 6px 12px;
-            background: #eff6ff;
-            color: #3b82f6;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        
-        .btn-add-attr:hover {
-            background: #dbeafe;
-        }
-        
-        .btn-remove-attr {
-            width: 28px;
-            height: 28px;
-            border: none;
-            background: #fef2f2;
-            color: #ef4444;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .modal-footer {
-            padding: 16px 20px;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
-        /* Toast 提示 */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .toast {
-            background: white;
-            padding: 12px 16px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            animation: toastSlide 0.3s ease;
-            min-width: 200px;
-        }
-        
-        @keyframes toastSlide {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        .toast.success {
-            border-left: 4px solid #22c55e;
-        }
-        
-        .toast.error {
-            border-left: 4px solid #ef4444;
-        }
-        
-        .toast.info {
-            border-left: 4px solid #3b82f6;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- 头部 -->
-        <div class="header">
-            <h1>型号管理系统</h1>
-            <div class="header-actions">
-                <button class="btn btn-secondary" onclick="refreshData()">
-                    <span>🔄</span> 刷新
-                </button>
-                <button class="btn btn-primary" onclick="openModal()">
-                    <span>+</span> 新增型号
-                </button>
-            </div>
-        </div>
-        
-        <!-- 筛选区域 -->
-        <div class="filter-section">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="搜索型号名称、ID或属性..." oninput="handleSearch()">
-            </div>
-            <div class="filter-group">
-                <span class="filter-label">分类:</span>
-                <select id="categoryFilter" onchange="handleFilter()">
-                    <option value="">全部分类</option>
-                    <option value="electronic">电子类</option>
-                    <option value="mechanical">机械类</option>
-                    <option value="accessory">配件类</option>
-                    <option value="component">元器件</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <span class="filter-label">状态:</span>
-                <select id="statusFilter" onchange="handleFilter()">
-                    <option value="">全部状态</option>
-                    <option value="active">在用</option>
-                    <option value="deprecated">停用</option>
-                    <option value="draft">草稿</option>
-                </select>
-            </div>
-        </div>
-        
-        <!-- 主内容区 -->
-        <div class="main-content">
-            <div class="toolbar">
-                <div class="toolbar-info">
-                    共 <span id="totalCount">0</span> 个型号
-                </div>
-                <div class="toolbar-actions">
-                    <button class="btn btn-secondary btn-sm" onclick="exportData()">
-                        <span>📥</span> 导出
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="importData()">
-                        <span>📤</span> 导入
-                    </button>
-                </div>
-            </div>
-            <div class="list-container">
-                <div class="model-list" id="modelList">
-                    <!-- 动态生成 -->
-                </div>
-            </div>
-        </div>
-    </div>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>型号管理系统 (Product Model Manager)</title>
     
-    <!-- 模态框 -->
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
-        <div class="modal" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">新增型号</h3>
-                <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <form id="modelForm">
-                    <input type="hidden" id="modelId">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">型号名称 *</label>
-                            <input type="text" class="form-input" id="modelName" required placeholder="输入型号名称">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">型号编码 *</label>
-                            <input type="text" class="form-input" id="modelCode" required placeholder="输入型号编码">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">分类</label>
-                            <select class="form-select" id="modelCategory">
-                                <option value="electronic">电子类</option>
-                                <option value="mechanical">机械类</option>
-                                <option value="accessory">配件类</option>
-                                <option value="component">元器件</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">状态</label>
-                            <select class="form-select" id="modelStatus">
-                                <option value="active">在用</option>
-                                <option value="deprecated">停用</option>
-                                <option value="draft">草稿</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">规格描述</label>
-                        <input type="text" class="form-input" id="modelSpec" placeholder="输入规格描述">
-                    </div>
-                    
-                    <div class="attributes-section">
-                        <div class="section-title">
-                            <span>扩展属性</span>
-                            <button type="button" class="btn-add-attr" onclick="addAttributeField()">+ 添加属性</button>
-                        </div>
-                        <div class="attr-list" id="attrList">
-                            <!-- 动态生成 -->
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-                <button class="btn btn-primary" onclick="saveModel()">保存</button>
-            </div>
-        </div>
-    </div>
+    <!-- Tailwind CSS (Embedded for offline usage) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Toast 容器 -->
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Alpine.js (Embedded logic for UI state) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- SortableJS (For drag and drop) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <script>
-        // ==================== 数据层 ====================
-        // 内置测试数据
-        let modelData = [
-            {
-                id: "MDL-2024-001",
-                name: "高精度压力传感器",
-                code: "PS-100-A",
-                category: "electronic",
-                status: "active",
-                spec: "0-10MPa, 4-20mA输出",
-                attributes: {
-                    "精度": "±0.1%",
-                    "工作温度": "-40~85°C",
-                    "供电电压": "24V DC"
-                },
-                createTime: "2024-01-15",
-                updateTime: "2024-02-20"
-            },
-            {
-                id: "MDL-2024-002",
-                name: "伺服电机驱动器",
-                code: "SV-200-B",
-                category: "electronic",
-                status: "active",
-                spec: "2kW, 三相380V",
-                attributes: {
-                    "额定功率": "2kW",
-                    "控制方式": "矢量控制",
-                    "通讯接口": "RS485/CAN"
-                },
-                createTime: "2024-01-20",
-                updateTime: "2024-03-05"
-            },
-            {
-                id: "MDL-2024-003",
-                name: "液压油缸组件",
-                code: "HC-300-C",
-                category: "mechanical",
-                status: "active",
-                spec: "缸径100mm, 行程500mm",
-                attributes: {
-                    "工作压力": "21MPa",
-                    "材质": "45#钢",
-                    "密封形式": "Y型密封"
-                },
-                createTime: "2024-02-01",
-                updateTime: "2024-02-28"
-            },
-            {
-                id: "MDL-2024-004",
-                name: "工业连接器",
-                code: "CN-400-D",
-                category: "component",
-                status: "draft",
-                spec: "M12, 8芯, IP67",
-                attributes: {
-                    "防护等级": "IP67",
-                    "额定电流": "4A",
-                    "插拔次数": "≥5000"
-                },
-                createTime: "2024-02-10",
-                updateTime: "2024-02-10"
-            },
-            {
-                id: "MDL-2024-005",
-                name: "温度变送器",
-                code: "TT-500-E",
-                category: "electronic",
-                status: "deprecated",
-                spec: "PT100, -50~200°C",
-                attributes: {
-                    "测量范围": "-50~200°C",
-                    "输出信号": "4-20mA",
-                    "精度等级": "0.5级"
-                },
-                createTime: "2023-12-01",
-                updateTime: "2024-01-30"
-            },
-            {
-                id: "MDL-2024-006",
-                name: "机械密封件",
-                code: "MS-600-F",
-                category: "accessory",
-                status: "active",
-                spec: "内径35mm, 外径55mm",
-                attributes: {
-                    "材质": "碳化硅/石墨",
-                    "适用介质": "水、油",
-                    "最高转速": "3000rpm"
-                },
-                createTime: "2024-02-15",
-                updateTime: "2024-03-01"
-            }
-        ];
-        
-        // 当前编辑的索引
-        let editingIndex = -1;
-        let draggedIndex = null;
-        
-        // ==================== Electron 通信接口 ====================
-        // 预留接口：与 Electron 主进程通信
-        const electronAPI = {
-            // 获取型号数据
-            async getModels() {
-                // TODO: 替换为实际的 Electron IPC 调用
-                // return await window.electron.invoke('get-models');
-                return modelData;
-            },
-            
-            // 保存型号数据
-            async saveModels(data) {
-                // TODO: 替换为实际的 Electron IPC 调用
-                // return await window.electron.invoke('save-models', data);
-                modelData = data;
-                return { success: true };
-            },
-            
-            // 导出数据
-            async exportData(data) {
-                // TODO: 替换为实际的 Electron IPC 调用
-                // return await window.electron.invoke('export-data', data);
-                console.log('Export data:', data);
-                return { success: true };
-            },
-            
-            // 导入数据
-            async importData() {
-                // TODO: 替换为实际的 Electron IPC 调用
-                // return await window.electron.invoke('import-data');
-                return { success: true, data: [] };
-            }
-        };
-        
-        // ==================== 初始化 ====================
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadData();
-            renderList();
-        });
-        
-        async function loadData() {
-            try {
-                // 尝试从 Electron 获取数据
-                const data = await electronAPI.getModels();
-                if (data && data.length > 0) {
-                    modelData = data;
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans SC"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
                 }
-            } catch (error) {
-                console.log('使用本地测试数据');
             }
         }
+    </script>
+
+    <style>
+        /* Custom Scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Drag and Drop Styles */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #e0f2fe;
+            border: 2px dashed #38bdf8;
+        }
+        .sortable-drag {
+            cursor: grabbing;
+            opacity: 1;
+            background: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+        }
+
+        /* Collapse Toggle Button - Positioned to align with header */
+        .sidebar-toggle {
+            position: absolute;
+            right: -12px;
+            top: 20px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.2s;
+        }
+        .sidebar-toggle:hover {
+            background: #f8fafc;
+            border-color: #38bdf8;
+            transform: scale(1.1);
+        }
+
+        /* Filter Dropdown Animation */
+        .filter-dropdown {
+            transform-origin: top;
+            transition: all 0.2s ease-out;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body class="bg-slate-50 text-slate-700 h-screen w-screen overflow-hidden flex flex-col"
+      x-data="modelManager()" x-init="initData()">
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex overflow-hidden">
         
-        // ==================== 渲染 ====================
-        function renderList() {
-            const listEl = document.getElementById('modelList');
-            const filteredData = getFilteredData();
+        <!-- LEFT SIDEBAR: Collapsible Tree Structure -->
+        <aside class="bg-white border-r border-slate-200 flex flex-col shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-0 transition-all duration-300 relative"
+               :class="sidebarCollapsed ? 'w-10' : 'w-44'">
             
-            document.getElementById('totalCount').textContent = filteredData.length;
-            
-            if (filteredData.length === 0) {
-                listEl.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <div class="empty-text">暂无型号数据</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            listEl.innerHTML = filteredData.map((item, index) => `
-                <div class="model-card" draggable="true" data-index="${index}" data-id="${item.id}">
-                    <div class="drag-handle">⋮⋮</div>
-                    <div class="model-info">
-                        <div class="model-name">
-                            ${item.name}
-                            <span class="model-id">${item.id}</span>
-                            <span class="category-tag tag-${item.category}">${getCategoryName(item.category)}</span>
+            <!-- Tree Content -->
+            <div x-show="!sidebarCollapsed" class="flex flex-col h-full">
+                <div class="px-3 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">产品目录</span>
+                    <button @click="expandAll()" class="text-xs text-brand-600 hover:text-brand-700 font-medium hover:bg-brand-50 px-2 py-1 rounded transition-colors">全部展开</button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-2 space-y-1" id="tree-container">
+                    <template x-for="series in treeData" :key="series.id">
+                        <div class="select-none">
+                            <div @click="series.isOpen = !series.isOpen" 
+                                 class="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-slate-50 transition-colors group">
+                                <svg class="w-3 h-3 text-slate-400 transition-transform duration-200" :class="{'rotate-90': series.isOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                <span class="font-medium text-slate-700 text-xs group-hover:text-brand-600 truncate" x-text="series.name"></span>
+                            </div>
+
+                            <div x-show="series.isOpen" x-collapse class="ml-3 border-l border-slate-200 pl-2 space-y-1 mt-1">
+                                <template x-for="cat in series.categories" :key="cat.id">
+                                    <div>
+                                        <div @click="cat.isOpen = !cat.isOpen"
+                                             class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-slate-50 text-xs transition-colors">
+                                            <svg class="w-3 h-3 text-slate-400 transition-transform duration-200" :class="{'rotate-90': cat.isOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                            <span class="text-slate-600 truncate" x-text="cat.name"></span>
+                                        </div>
+
+                                        <div x-show="cat.isOpen" x-collapse class="ml-3 border-l border-slate-200 pl-2 space-y-1 mt-1">
+                                            <template x-for="model in cat.models" :key="model.id">
+                                                <div @click="selectModel(model)"
+                                                     class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer text-xs transition-all"
+                                                     :class="selectedModelId === model.id ? 'bg-brand-50 text-brand-700 font-medium shadow-sm ring-1 ring-brand-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'">
+                                                    <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                                    <span class="truncate" x-text="model.name"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
-                        <div class="model-meta">
-                            <span class="meta-item">📋 ${item.code}</span>
-                            <span class="meta-item">📐 ${item.spec || '无规格'}</span>
-                            <span class="meta-item">📅 ${item.updateTime}</span>
-                            <span class="meta-item">${getStatusIcon(item.status)} ${getStatusName(item.status)}</span>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Collapsed State -->
+            <div x-show="sidebarCollapsed" class="h-full flex flex-col items-center py-6">
+                <svg class="w-4 h-4 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <span class="text-[10px] text-slate-400 writing-vertical">目录</span>
+            </div>
+
+            <!-- Sidebar Toggle Button - Aligned with header area -->
+            <button @click="sidebarCollapsed = !sidebarCollapsed" 
+                    class="sidebar-toggle"
+                    :class="sidebarCollapsed ? 'rotate-180' : ''">
+                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+        </aside>
+
+        <!-- RIGHT CONTENT AREA -->
+        <section class="flex-1 flex flex-col bg-slate-50/50 relative min-w-0">
+            
+            <!-- TOP: Visualization & Header -->
+            <div class="h-24 bg-white border-b border-slate-200 shrink-0 flex shadow-sm z-10">
+                <!-- Image Preview Area -->
+                <div @click="openImageModal()" 
+                     class="w-28 border-r border-slate-100 p-2 flex items-center justify-center bg-slate-50 relative group overflow-hidden shrink-0 cursor-pointer hover:bg-slate-100 transition-colors">
+                    <div class="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px]"></div>
+                    
+                    <template x-if="currentModel">
+                        <div class="relative z-10 text-center">
+                            <div class="w-16 h-12 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center mb-1 mx-auto overflow-hidden group-hover:shadow-lg transition-shadow">
+                                <img src="https://placehold.co/400x250/e2e8f0/475569?text=Diagram" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" alt="Diagram">
+                            </div>
+                            <p class="text-[9px] text-slate-400 font-mono">点击放大</p>
+                        </div>
+                    </template>
+                    <template x-if="!currentModel">
+                        <div class="text-slate-300 flex flex-col items-center">
+                            <svg class="w-5 h-5 mb-0.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Model Meta Info -->
+                <div class="flex-1 px-4 py-3 flex items-center justify-between min-w-0">
+                    <div class="min-w-0 flex-1">
+                        <h2 class="text-base font-bold text-slate-800 truncate" x-text="currentModel ? currentModel.name : '未选择型号'"></h2>
+                        <p class="text-slate-500 text-xs mt-0.5 truncate" x-text="currentModel ? '系列代码: ' + currentModel.code + ' | 更新: 2023-10-24' : '请在左侧选择型号'"></p>
+                        
+                        <div class="flex gap-4 mt-2" x-show="currentModel">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-lg font-bold text-slate-700" x-text="specs.length"></span>
+                                <span class="text-xs text-slate-400">规格</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-lg font-bold text-slate-700" x-text="allKeys.length"></span>
+                                <span class="text-xs text-slate-400">属性</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="model-actions">
-                        <button class="btn-icon btn-edit" onclick="editModel('${item.id}')" title="编辑">✏️</button>
-                        <button class="btn-icon btn-delete" onclick="deleteModel('${item.id}')" title="删除">🗑️</button>
+                    
+                    <!-- Add Button - Prominent position -->
+                    <div x-show="currentModel" class="shrink-0 ml-4">
+                        <button @click="openAddModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 shadow-md shadow-brand-200 transition-all flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            新增规格
+                        </button>
                     </div>
                 </div>
-            `).join('');
-            
-            // 绑定拖拽事件
-            bindDragEvents();
-        }
-        
-        function getFilteredData() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const category = document.getElementById('categoryFilter').value;
-            const status = document.getElementById('statusFilter').value;
-            
-            return modelData.filter(item => {
-                const matchSearch = !searchTerm || 
-                    item.name.toLowerCase().includes(searchTerm) ||
-                    item.id.toLowerCase().includes(searchTerm) ||
-                    item.code.toLowerCase().includes(searchTerm) ||
-                    Object.values(item.attributes || {}).some(v => 
-                        v.toLowerCase().includes(searchTerm)
-                    );
-                
-                const matchCategory = !category || item.category === category;
-                const matchStatus = !status || item.status === status;
-                
-                return matchSearch && matchCategory && matchStatus;
-            });
-        }
-        
-        function getCategoryName(category) {
-            const map = {
-                'electronic': '电子类',
-                'mechanical': '机械类',
-                'accessory': '配件类',
-                'component': '元器件'
-            };
-            return map[category] || category;
-        }
-        
-        function getStatusName(status) {
-            const map = {
-                'active': '在用',
-                'deprecated': '停用',
-                'draft': '草稿'
-            };
-            return map[status] || status;
-        }
-        
-        function getStatusIcon(status) {
-            const map = {
-                'active': '✅',
-                'deprecated': '⛔',
-                'draft': '📝'
-            };
-            return map[status] || '⚪';
-        }
-        
-        // ==================== 拖拽排序 ====================
-        function bindDragEvents() {
-            const cards = document.querySelectorAll('.model-card');
-            
-            cards.forEach(card => {
-                card.addEventListener('dragstart', handleDragStart);
-                card.addEventListener('dragend', handleDragEnd);
-                card.addEventListener('dragover', handleDragOver);
-                card.addEventListener('drop', handleDrop);
-                card.addEventListener('dragenter', handleDragEnter);
-                card.addEventListener('dragleave', handleDragLeave);
-            });
-        }
-        
-        function handleDragStart(e) {
-            draggedIndex = parseInt(this.dataset.index);
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        }
-        
-        function handleDragEnd(e) {
-            this.classList.remove('dragging');
-            document.querySelectorAll('.model-card').forEach(card => {
-                card.classList.remove('drag-over');
-            });
-        }
-        
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-        }
-        
-        function handleDragEnter(e) {
-            e.preventDefault();
-            if (parseInt(this.dataset.index) !== draggedIndex) {
-                this.classList.add('drag-over');
-            }
-        }
-        
-        function handleDragLeave(e) {
-            this.classList.remove('drag-over');
-        }
-        
-        function handleDrop(e) {
-            e.preventDefault();
-            this.classList.remove('drag-over');
-            
-            const targetIndex = parseInt(this.dataset.index);
-            if (draggedIndex === null || draggedIndex === targetIndex) return;
-            
-            // 获取当前过滤后的数据
-            const filteredData = getFilteredData();
-            const draggedItem = filteredData[draggedIndex];
-            const targetItem = filteredData[targetIndex];
-            
-            // 在原始数据中找到索引
-            const originalDraggedIndex = modelData.findIndex(item => item.id === draggedItem.id);
-            const originalTargetIndex = modelData.findIndex(item => item.id === targetItem.id);
-            
-            // 交换位置
-            const [removed] = modelData.splice(originalDraggedIndex, 1);
-            modelData.splice(originalTargetIndex, 0, removed);
-            
-            saveData();
-            renderList();
-            showToast('排序已更新', 'success');
-        }
-        
-        // ==================== 搜索和筛选 ====================
-        function handleSearch() {
-            renderList();
-        }
-        
-        function handleFilter() {
-            renderList();
-        }
-        
-        // ==================== 模态框操作 ====================
-        function openModal(modelId = null) {
-            const modal = document.getElementById('modalOverlay');
-            const title = document.getElementById('modalTitle');
-            const form = document.getElementById('modelForm');
-            
-            if (modelId) {
-                title.textContent = '编辑型号';
-                editingIndex = modelData.findIndex(item => item.id === modelId);
-                const model = modelData[editingIndex];
-                
-                document.getElementById('modelId').value = model.id;
-                document.getElementById('modelName').value = model.name;
-                document.getElementById('modelCode').value = model.code;
-                document.getElementById('modelCategory').value = model.category;
-                document.getElementById('modelStatus').value = model.status;
-                document.getElementById('modelSpec').value = model.spec || '';
-                
-                // 渲染属性
-                renderAttributes(model.attributes || {});
-            } else {
-                title.textContent = '新增型号';
-                editingIndex = -1;
-                form.reset();
-                document.getElementById('modelId').value = '';
-                renderAttributes({});
-            }
-            
-            modal.classList.add('active');
-        }
-        
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('active');
-        }
-        
-        function closeModalOnOverlay(e) {
-            if (e.target === e.currentTarget) {
-                closeModal();
-            }
-        }
-        
-        // ==================== 属性管理 ====================
-        function renderAttributes(attributes) {
-            const container = document.getElementById('attrList');
-            const entries = Object.entries(attributes);
-            
-            if (entries.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            container.innerHTML = entries.map(([key, value], index) => `
-                <div class="attr-item">
-                    <input type="text" placeholder="属性名" value="${key}" class="attr-key">
-                    <input type="text" placeholder="属性值" value="${value}" class="attr-value">
-                    <button type="button" class="btn-remove-attr" onclick="removeAttributeField(this)">×</button>
+            </div>
+
+            <!-- BOTTOM: Data Grid -->
+            <div class="flex-1 overflow-hidden flex flex-col p-3">
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm flex-1 overflow-hidden flex flex-col">
+                    <div class="table-scroll-container flex-1 overflow-y-auto">
+                        <div class="min-w-max">
+                            <!-- Table Header -->
+                            <div class="flex px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0 sticky top-0 z-10">
+                                <div class="w-14 shrink-0 border-r border-slate-200 mr-2 flex items-center">排序</div>
+                                
+                                <template x-for="key in allKeys" :key="key">
+                                    <div class="w-32 shrink-0 px-2 border-r border-slate-200 last:border-r-0 relative group">
+                                        <div class="flex items-center justify-between">
+                                            <span class="truncate" x-text="key"></span>
+                                            <button @click="toggleFilter(key)" 
+                                                    class="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-slate-200 rounded"
+                                                    :class="{'opacity-100 text-brand-600 bg-brand-50': activeFilters[key] && activeFilters[key].length > 0}">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                            </button>
+                                        </div>
+                                        
+                                        <div x-show="openFilterKey === key" 
+                                             @click.away="openFilterKey = null"
+                                             class="absolute top-full left-0 mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-20 p-2 filter-dropdown">
+                                            <div class="text-xs text-slate-400 mb-2 font-medium" x-text="'筛选: ' + key"></div>
+                                            <div class="max-h-40 overflow-y-auto space-y-1">
+                                                <template x-for="value in getUniqueValues(key)" :key="value">
+                                                    <label class="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 p-1.5 rounded">
+                                                        <input type="checkbox" 
+                                                               :value="value" 
+                                                               x-model="activeFilters[key]"
+                                                               class="rounded border-slate-300 text-brand-500 focus:ring-brand-500">
+                                                        <span class="truncate" x-text="value === '-' ? '(空值)' : value"></span>
+                                                    </label>
+                                                </template>
+                                            </div>
+                                            <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between">
+                                                <button @click="activeFilters[key] = []" class="text-xs text-slate-500 hover:text-slate-700">清除</button>
+                                                <button @click="openFilterKey = null" class="text-xs text-brand-600 font-medium">确定</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <div class="w-20 shrink-0 text-right">操作</div>
+                            </div>
+
+                            <!-- Draggable List -->
+                            <div id="spec-list" class="divide-y divide-slate-100">
+                                <template x-for="(spec, index) in filteredSpecs" :key="spec.id">
+                                    <div class="flex px-4 py-2.5 items-center hover:bg-slate-50 transition-colors group cursor-move bg-white text-xs">
+                                        <div class="w-14 shrink-0 flex items-center gap-1.5 text-slate-400 border-r border-slate-100 mr-2">
+                                            <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                                            <span class="text-xs font-mono bg-slate-100 px-1.5 py-0.5 rounded" x-text="spec.sortOrder || (index + 1)"></span>
+                                        </div>
+                                        
+                                        <template x-for="key in allKeys" :key="key">
+                                            <div class="w-32 shrink-0 px-2 text-slate-700 border-r border-slate-100 last:border-r-0"
+                                                 :class="{'text-slate-300 italic': !spec[key] || spec[key] === '-'}">
+                                                <input type="text" 
+                                                       x-model="spec[key]"
+                                                       @blur="updateSpecProperty(spec.id, key, spec[key])"
+                                                       class="w-full bg-transparent border-none p-0 text-xs focus:ring-0 focus:bg-brand-50 rounded px-1 -mx-1 transition-colors"
+                                                       :placeholder="spec[key] ? '' : '-'">
+                                            </div>
+                                        </template>
+                                        
+                                        <div class="w-20 shrink-0 text-right opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-1">
+                                            <button @click="openEditModal(spec)" class="text-slate-400 hover:text-brand-600 p-1 rounded hover:bg-slate-100">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            </button>
+                                            <button @click="deleteSpec(spec.id)" class="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <div x-show="filteredSpecs.length === 0" class="py-16 text-center">
+                                    <svg class="w-10 h-10 mx-auto mb-3 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <p class="text-sm text-slate-400">没有找到匹配的型号数据</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            `).join('');
-        }
+                
+                <div class="mt-2 text-xs text-slate-400 flex justify-between px-1">
+                    <span>提示: 拖拽行可调整排序，点击单元格可直接编辑，表头可筛选。</span>
+                    <span x-text="'显示 ' + filteredSpecs.length + ' / ' + specs.length + ' 条记录'"></span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Image Preview Modal -->
+    <div x-show="showImageModal" class="fixed inset-0 z-50 flex items-center justify-center" style="display: none;">
+        <div x-show="showImageModal" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="showImageModal = false"
+             class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
         
-        function addAttributeField() {
-            const container = document.getElementById('attrList');
-            const div = document.createElement('div');
-            div.className = 'attr-item';
-            div.innerHTML = `
-                <input type="text" placeholder="属性名" class="attr-key">
-                <input type="text" placeholder="属性值" class="attr-value">
-                <button type="button" class="btn-remove-attr" onclick="removeAttributeField(this)">×</button>
-            `;
-            container.appendChild(div);
-        }
+        <div x-show="showImageModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="bg-white rounded-xl shadow-2xl max-w-4xl max-h-[90vh] p-4 relative z-10">
+            <button @click="showImageModal = false" class="absolute -top-10 right-0 text-white hover:text-slate-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <img src="https://placehold.co/800x600/e2e8f0/475569?text=Product+Diagram+HD" class="max-w-full max-h-[80vh] rounded-lg" alt="Full Diagram">
+            <div class="mt-2 text-center text-xs text-slate-500" x-text="currentModel ? currentModel.code + '_ASM.jpg' : ''"></div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Spec Modal -->
+    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center" style="display: none;">
+        <div x-show="showModal" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="closeModal()"
+             class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
         
-        function removeAttributeField(btn) {
-            btn.parentElement.remove();
-        }
-        
-        function getAttributesFromForm() {
-            const attributes = {};
-            document.querySelectorAll('.attr-item').forEach(item => {
-                const key = item.querySelector('.attr-key').value.trim();
-                const value = item.querySelector('.attr-value').value.trim();
-                if (key && value) {
-                    attributes[key] = value;
+        <div x-show="showModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="bg-white rounded-xl shadow-2xl w-[500px] max-h-[80vh] flex flex-col relative z-10 border border-slate-200">
+            
+            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-xl">
+                <h3 class="text-sm font-bold text-slate-800" x-text="editingSpec ? '编辑型号规格' : '新增型号规格'"></h3>
+                <button @click="closeModal()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-5 overflow-y-auto flex-1 space-y-4">
+                <div x-show="!editingSpec">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">系列前缀 (锁定)</label>
+                    <div class="flex">
+                        <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-300 bg-slate-100 text-slate-500 text-sm font-mono" x-text="currentModel ? currentModel.code : '---'"></span>
+                        <input type="text" x-model="newSpec.suffix" placeholder="输入编号后缀" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-r-lg border border-slate-300 text-sm focus:ring-brand-500 focus:border-brand-500">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase">属性配置</label>
+                        <button @click="addNewPropertyField()" class="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 px-2 py-1 rounded hover:bg-brand-50 transition-colors">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            添加属性
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <template x-for="(prop, index) in newSpec.properties" :key="index">
+                            <div class="flex gap-2 items-center">
+                                <input type="text" x-model="prop.key" placeholder="属性名" class="w-1/3 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
+                                <input type="text" x-model="prop.value" placeholder="属性值" class="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
+                                <button @click="removePropertyField(index)" class="text-slate-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <div x-show="newSpec.properties.length === 0" class="text-center py-6 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                        <p class="text-sm text-slate-400">暂无自定义属性</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-xl flex justify-end gap-2">
+                <button @click="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm hover:bg-slate-50 transition-colors">取消</button>
+                <button @click="saveSpec()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 shadow-md shadow-brand-200 transition-colors">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        function modelManager() {
+            return {
+                sidebarCollapsed: false,
+                selectedModelId: null,
+                currentModel: null,
+                specs: [],
+                showModal: false,
+                showImageModal: false,
+                editingSpec: null,
+                openFilterKey: null,
+                activeFilters: {},
+                
+                newSpec: {
+                    suffix: '',
+                    properties: []
+                },
+
+                initData() {
+                    this.generateMockData();
+                    
+                    this.$nextTick(() => {
+                        const el = document.getElementById('spec-list');
+                        Sortable.create(el, {
+                            animation: 150,
+                            ghostClass: 'sortable-ghost',
+                            dragClass: 'sortable-drag',
+                            handle: '.group',
+                            onEnd: (evt) => {
+                                const itemMoved = this.specs.splice(evt.oldIndex, 1)[0];
+                                this.specs.splice(evt.newIndex, 0, itemMoved);
+                                this.updateSortOrders();
+                            }
+                        });
+                    });
+                },
+
+                get allKeys() {
+                    if (this.specs.length === 0) return [];
+                    
+                    const keyStats = {};
+                    
+                    this.specs.forEach(spec => {
+                        Object.keys(spec).forEach(key => {
+                            if (key === 'id' || key === 'sortOrder') return;
+                            
+                            if (!keyStats[key]) {
+                                keyStats[key] = { total: 0, empty: 0 };
+                            }
+                            keyStats[key].total++;
+                            
+                            const val = spec[key];
+                            if (!val || val === '-' || val === '') {
+                                keyStats[key].empty++;
+                            }
+                        });
+                    });
+
+                    const validKeys = Object.keys(keyStats).filter(key => {
+                        return keyStats[key].empty < keyStats[key].total;
+                    });
+
+                    const priority = ['壳体编号', '型号全称', '材质', '防护等级', '状态', '电压', '电流'];
+                    const sortedKeys = [];
+                    
+                    priority.forEach(k => {
+                        if (validKeys.includes(k)) {
+                            sortedKeys.push(k);
+                        }
+                    });
+                    
+                    validKeys.forEach(k => {
+                        if (!priority.includes(k)) {
+                            sortedKeys.push(k);
+                        }
+                    });
+                    
+                    return sortedKeys;
+                },
+
+                get filteredSpecs() {
+                    if (Object.keys(this.activeFilters).length === 0) return this.specs;
+                    
+                    return this.specs.filter(spec => {
+                        for (let [key, selectedValues] of Object.entries(this.activeFilters)) {
+                            if (selectedValues && selectedValues.length > 0) {
+                                const specValue = spec[key] || '-';
+                                if (!selectedValues.includes(specValue)) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                    });
+                },
+
+                getUniqueValues(key) {
+                    const values = new Set();
+                    this.specs.forEach(spec => {
+                        const val = spec[key] || '-';
+                        values.add(val);
+                    });
+                    return Array.from(values).sort();
+                },
+
+                toggleFilter(key) {
+                    if (this.openFilterKey === key) {
+                        this.openFilterKey = null;
+                    } else {
+                        this.openFilterKey = key;
+                        if (!this.activeFilters[key]) {
+                            this.activeFilters[key] = [];
+                        }
+                    }
+                },
+
+                selectModel(model) {
+                    this.selectedModelId = model.id;
+                    this.currentModel = model;
+                    this.activeFilters = {};
+                    this.fetchSpecsForModel(model.id);
+                },
+
+                expandAll() {
+                    this.treeData.forEach(series => {
+                        series.isOpen = true;
+                        if(series.categories) {
+                            series.categories.forEach(cat => cat.isOpen = true);
+                        }
+                    });
+                },
+
+                updateSortOrders() {
+                    this.specs.forEach((spec, index) => {
+                        spec.sortOrder = index + 1;
+                    });
+                },
+
+                updateSpecProperty(id, key, value) {
+                    const spec = this.specs.find(s => s.id === id);
+                    if (spec) {
+                        spec[key] = value;
+                    }
+                },
+
+                openImageModal() {
+                    if (this.currentModel) {
+                        this.showImageModal = true;
+                    }
+                },
+
+                openAddModal() {
+                    this.editingSpec = null;
+                    this.newSpec = {
+                        suffix: '',
+                        properties: [
+                            { key: '材质', value: '' },
+                            { key: '防护等级', value: '' }
+                        ]
+                    };
+                    this.showModal = true;
+                },
+
+                openEditModal(spec) {
+                    this.editingSpec = spec;
+                    const properties = Object.entries(spec)
+                        .filter(([key]) => key !== 'id' && key !== 'sortOrder')
+                        .map(([key, value]) => ({ key, value }));
+                    
+                    this.newSpec = {
+                        suffix: '',
+                        properties: properties
+                    };
+                    this.showModal = true;
+                },
+
+                closeModal() {
+                    this.showModal = false;
+                    this.editingSpec = null;
+                },
+
+                addNewPropertyField() {
+                    this.newSpec.properties.push({ key: '', value: '' });
+                },
+
+                removePropertyField(index) {
+                    this.newSpec.properties.splice(index, 1);
+                },
+
+                saveSpec() {
+                    if (!this.editingSpec && !this.newSpec.suffix) {
+                        alert('请输入编号后缀');
+                        return;
+                    }
+
+                    const specData = {
+                        sortOrder: this.editingSpec ? this.editingSpec.sortOrder : this.specs.length + 1
+                    };
+
+                    this.newSpec.properties.forEach(prop => {
+                        if (prop.key) {
+                            specData[prop.key] = prop.value || '-';
+                        }
+                    });
+
+                    if (this.editingSpec) {
+                        Object.assign(this.editingSpec, specData);
+                    } else {
+                        const newId = 'spec-' + Date.now();
+                        const prefix = this.currentModel ? this.currentModel.code : 'XXX';
+                        specData.id = newId;
+                        specData['壳体编号'] = prefix + this.newSpec.suffix;
+                        this.specs.push(specData);
+                    }
+
+                    this.closeModal();
+                },
+
+                deleteSpec(id) {
+                    if (confirm('确定要删除这个型号规格吗？')) {
+                        this.specs = this.specs.filter(s => s.id !== id);
+                        this.updateSortOrders();
+                    }
+                },
+
+                generateMockData() {
+                    this.treeData = [
+                        {
+                            id: 's1', name: '工业连接器', isOpen: true,
+                            categories: [
+                                {
+                                    id: 'c1', name: '圆形系列', isOpen: true,
+                                    models: [
+                                        { id: 'm1', name: 'YX-2000', code: 'YX2K' },
+                                        { id: 'm2', name: 'YX-3000', code: 'YX3K' }
+                                    ]
+                                },
+                                {
+                                    id: 'c2', name: '矩形系列', isOpen: false,
+                                    models: [
+                                        { id: 'm4', name: 'RJ45', code: 'RJ45' }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: 's2', name: '传感器', isOpen: false,
+                            categories: [
+                                {
+                                    id: 'c3', name: '压力型', isOpen: false,
+                                    models: [
+                                        { id: 'm6', name: 'PS-100', code: 'PS100' }
+                                    ]
+                                }
+                            ]
+                        }
+                    ];
+                    
+                    this.selectModel(this.treeData[0].categories[0].models[0]);
+                },
+
+                fetchSpecsForModel(modelId) {
+                    this.specs = [];
+                    
+                    setTimeout(() => {
+                        const materials = ['铝合金 6061', '不锈钢 304', '工程塑料', '黄铜'];
+                        
+                        for(let i=0; i<8; i++) {
+                            const spec = {
+                                id: 'spec-' + i,
+                                '壳体编号': modelId + '-' + (100 + i),
+                                '型号全称': modelId + '-SPEC-' + (100+i),
+                                '材质': materials[Math.floor(Math.random() * materials.length)],
+                                '防护等级': ['IP65', 'IP67', 'IP68'][Math.floor(Math.random() * 3)],
+                                '状态': ['量产中', '试产'][Math.floor(Math.random() * 2)],
+                                'sortOrder': i + 1
+                            };
+                            
+                            if (i % 3 === 0) spec['特殊涂层'] = '阳极氧化';
+                            if (i % 2 === 0) spec['电压'] = '24V';
+                            if (i === 0) spec['定制字段'] = '仅第一条有';
+                            
+                            this.specs.push(spec);
+                        }
+                    }, 100);
                 }
-            });
-            return attributes;
-        }
-        
-        // ==================== 数据操作 ====================
-        async function saveModel() {
-            const name = document.getElementById('modelName').value.trim();
-            const code = document.getElementById('modelCode').value.trim();
-            
-            if (!name || !code) {
-                showToast('请填写必填项', 'error');
-                return;
             }
-            
-            const now = new Date().toISOString().split('T')[0];
-            const model = {
-                id: editingIndex >= 0 ? modelData[editingIndex].id : generateId(),
-                name: name,
-                code: code,
-                category: document.getElementById('modelCategory').value,
-                status: document.getElementById('modelStatus').value,
-                spec: document.getElementById('modelSpec').value.trim(),
-                attributes: getAttributesFromForm(),
-                createTime: editingIndex >= 0 ? modelData[editingIndex].createTime : now,
-                updateTime: now
-            };
-            
-            if (editingIndex >= 0) {
-                modelData[editingIndex] = model;
-                showToast('型号已更新', 'success');
-            } else {
-                modelData.push(model);
-                showToast('型号已添加', 'success');
-            }
-            
-            await saveData();
-            closeModal();
-            renderList();
-        }
-        
-        function editModel(id) {
-            openModal(id);
-        }
-        
-        async function deleteModel(id) {
-            if (!confirm('确定要删除这个型号吗？')) return;
-            
-            const index = modelData.findIndex(item => item.id === id);
-            if (index > -1) {
-                modelData.splice(index, 1);
-                await saveData();
-                renderList();
-                showToast('型号已删除', 'success');
-            }
-        }
-        
-        function generateId() {
-            const prefix = 'MDL';
-            const year = new Date().getFullYear();
-            const random = Math.floor(Math.random() * 900 + 100);
-            const existingIds = modelData.map(m => m.id);
-            let newId = `${prefix}-${year}-${random}`;
-            while (existingIds.includes(newId)) {
-                newId = `${prefix}-${year}-${Math.floor(Math.random() * 900 + 100)}`;
-            }
-            return newId;
-        }
-        
-        async function saveData() {
-            try {
-                await electronAPI.saveModels(modelData);
-            } catch (error) {
-                console.error('保存失败:', error);
-            }
-        }
-        
-        async function refreshData() {
-            await loadData();
-            renderList();
-            showToast('数据已刷新', 'success');
-        }
-        
-        async function exportData() {
-            try {
-                await electronAPI.exportData(modelData);
-                showToast('数据导出成功', 'success');
-            } catch (error) {
-                showToast('导出失败', 'error');
-            }
-        }
-        
-        async function importData() {
-            try {
-                const result = await electronAPI.importData();
-                if (result.success && result.data) {
-                    modelData = result.data;
-                    saveData();
-                    renderList();
-                    showToast('数据导入成功', 'success');
-                }
-            } catch (error) {
-                showToast('导入失败', 'error');
-            }
-        }
-        
-        // ==================== 提示消息 ====================
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const icons = {
-                success: '✅',
-                error: '❌',
-                info: 'ℹ️'
-            };
-            
-            toast.innerHTML = `
-                <span>${icons[type]}</span>
-                <span>${message}</span>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(20px)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
         }
     </script>
 </body>

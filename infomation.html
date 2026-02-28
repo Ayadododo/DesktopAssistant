@@ -29,7 +29,7 @@
             gap: 12px;
         }
 
-        /* 分类标签栏 + 新建按钮 */
+        /* 顶部栏：分类标签 + 新建按钮 */
         .top-bar {
             display: flex;
             gap: 12px;
@@ -86,31 +86,12 @@
             padding: 2px 8px;
             border-radius: 10px;
             font-weight: 600;
+            min-width: 20px;
+            text-align: center;
         }
 
         .tab-btn.active .count {
             background: rgba(255,255,255,0.25);
-        }
-
-        .btn-add-category {
-            padding: 10px 16px;
-            border: 2px dashed #cbd5e1;
-            background: transparent;
-            border-radius: 20px;
-            font-size: 14px;
-            color: #64748b;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .btn-add-category:hover {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            background: #eff6ff;
         }
 
         .btn-new-message {
@@ -153,7 +134,7 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
 
         .messages-container::-webkit-scrollbar {
@@ -169,16 +150,16 @@
             border-radius: 3px;
         }
 
-        /* 消息卡片 */
+        /* 精简的消息卡片 */
         .message-card {
             background: white;
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 12px;
+            padding: 16px 20px;
             transition: all 0.3s ease;
             border: 1px solid #e2e8f0;
             position: relative;
             animation: slideIn 0.3s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
 
         @keyframes slideIn {
@@ -194,41 +175,37 @@
 
         .message-card:hover {
             border-color: #bfdbfe;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08);
-            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08);
+            transform: translateY(-1px);
         }
 
         .message-card.pinned {
             background: #eff6ff;
             border-color: #93c5fd;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
         }
 
         .message-card.pinned::before {
             content: '📌';
             position: absolute;
-            top: -8px;
-            right: 16px;
-            font-size: 20px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            top: -6px;
+            right: 12px;
+            font-size: 16px;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
         }
 
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .message-content {
+            color: #1e293b;
+            line-height: 1.6;
+            font-size: 15px;
+            word-wrap: break-word;
             margin-bottom: 12px;
         }
 
-        .category-tag {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: #dbeafe;
-            color: #1d4ed8;
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .message-time {
@@ -236,93 +213,55 @@
             color: #94a3b8;
         }
 
-        .message-content {
-            color: #1e293b;
-            line-height: 1.7;
-            font-size: 15px;
-            margin-bottom: 16px;
-            word-wrap: break-word;
-            padding: 8px 0;
-        }
-
-        .message-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 12px;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .message-author {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #64748b;
-        }
-
-        .author-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
         .message-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .action-btn {
-            padding: 6px 14px;
+            padding: 4px 12px;
             border: none;
-            border-radius: 8px;
-            font-size: 12px;
+            border-radius: 6px;
+            font-size: 11px;
             cursor: pointer;
             transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
             font-weight: 500;
+            opacity: 0.7;
+        }
+
+        .message-card:hover .action-btn {
+            opacity: 1;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
         }
 
         .btn-pin {
             background: #eff6ff;
             color: #3b82f6;
-            border: 1px solid #bfdbfe;
         }
 
         .btn-pin:hover {
             background: #dbeafe;
-            border-color: #93c5fd;
         }
 
         .btn-edit {
             background: #f0fdf4;
             color: #16a34a;
-            border: 1px solid #bbf7d0;
         }
 
         .btn-edit:hover {
             background: #dcfce7;
-            border-color: #86efac;
         }
 
         .btn-delete {
             background: #fef2f2;
             color: #ef4444;
-            border: 1px solid #fecaca;
         }
 
         .btn-delete:hover {
             background: #fee2e2;
-            border-color: #fca5a5;
         }
 
         /* 空状态 */
@@ -338,20 +277,50 @@
         }
 
         .empty-icon {
-            font-size: 56px;
-            margin-bottom: 16px;
-            opacity: 0.6;
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
         }
 
         .empty-text {
-            font-size: 16px;
-            margin-bottom: 8px;
+            font-size: 15px;
+            margin-bottom: 6px;
             color: #64748b;
         }
 
         .empty-hint {
             font-size: 13px;
+            opacity: 0.7;
+        }
+
+        /* 无分类状态 */
+        .no-category-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .no-category-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .no-category-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        .no-category-hint {
+            font-size: 14px;
             opacity: 0.8;
+            margin-bottom: 20px;
         }
 
         /* 模态框 */
@@ -639,12 +608,12 @@
 
         /* 置顶区域分隔 */
         .section-header {
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 11px;
+            font-weight: 600;
             color: #3b82f6;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 4px 0 8px 4px;
+            letter-spacing: 0.5px;
+            margin: 8px 4px 4px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -670,12 +639,9 @@
             <div class="category-tabs" id="categoryTabs">
                 <!-- 动态生成分类标签 -->
             </div>
-            <button class="btn-add-category" onclick="openAddCategoryModal()" title="添加分类">
-                <span>+</span>
-            </button>
             <button class="btn-new-message" onclick="openAddModal()">
                 <span>+</span>
-                <span>新建消息</span>
+                <span>新建</span>
             </button>
         </div>
 
@@ -745,7 +711,7 @@
             { id: 'system', name: '系统', color: '#ef4444' },
             { id: 'general', name: '一般', color: '#64748b' }
         ];
-        let currentCategory = 'notice';
+        let currentCategory = null; // 初始为null，动态设置
         let editingId = null;
         let deletingId = null;
         let currentUser = {
@@ -759,100 +725,102 @@
             loadData();
             setupElectronListener();
             
-            // 如果没有消息，添加测试数据
-            if (messages.length === 0) {
-                addTestData();
+            // 清理空分类
+            cleanupEmptyCategories();
+            
+            if (messages.length === 0 && categories.length === 0) {
+                // 无任何数据，保持空状态
+            } else if (messages.length === 0) {
+                // 有分类但无消息，保持分类显示
+            } else {
+                // 有消息，确保当前分类有效
+                if (!currentCategory || !categories.find(c => c.id === currentCategory)) {
+                    currentCategory = categories[0]?.id || null;
+                }
             }
             
             renderCategoryTabs();
             renderCategoryOptions();
             renderMessages();
-            updateCounts();
         });
 
         // ==================== 数据持久化 ====================
         function saveData() {
             localStorage.setItem('desktopAssistant_messages', JSON.stringify(messages));
             localStorage.setItem('desktopAssistant_categories', JSON.stringify(categories));
+            localStorage.setItem('desktopAssistant_currentCategory', currentCategory || '');
             sendToElectron('data-updated', { messages, categories });
         }
 
         function loadData() {
             const storedMessages = localStorage.getItem('desktopAssistant_messages');
             const storedCategories = localStorage.getItem('desktopAssistant_categories');
+            const storedCurrentCategory = localStorage.getItem('desktopAssistant_currentCategory');
             
             if (storedMessages) messages = JSON.parse(storedMessages);
             if (storedCategories) categories = JSON.parse(storedCategories);
+            if (storedCurrentCategory) currentCategory = storedCurrentCategory || null;
+        }
+
+        // ==================== 清理空分类 ====================
+        function cleanupEmptyCategories() {
+            // 找出有消息的分类ID
+            const categoriesWithMessages = new Set(messages.map(m => m.category));
+            
+            // 只保留有消息的分类
+            categories = categories.filter(cat => categoriesWithMessages.has(cat.id));
+            
+            // 如果当前分类被删除了，切换到第一个有效分类
+            if (currentCategory && !categories.find(c => c.id === currentCategory)) {
+                currentCategory = categories[0]?.id || null;
+            }
+            
+            saveData();
         }
 
         // ==================== 用户和Electron接口预留 ====================
-        async function initUserInfo() {
-            // 预留HTTP接口
-        }
-
-        function setupElectronListener() {
-            // 预留Electron通信
-        }
-
+        async function initUserInfo() {}
+        function setupElectronListener() {}
         function sendToElectron(channel, data) {
             console.log(`[Electron] Channel: ${channel}, Data:`, data);
-        }
-
-        // ==================== 测试数据 ====================
-        function addTestData() {
-            const testMessages = [
-                {
-                    id: 1,
-                    content: '本周五下午3点进行项目进度汇报，请各组成员准备好相关材料。会议地点在三楼大会议室，请准时参加。汇报内容包括：本周完成情况、遇到的问题及解决方案、下周工作计划。',
-                    category: 'meeting',
-                    author: '项目经理',
-                    timestamp: new Date(Date.now() - 3600000).toISOString(),
-                    pinned: true
-                },
-                {
-                    id: 2,
-                    content: '系统将于今晚12点进行维护升级，预计耗时2小时，请提前保存好工作。维护期间系统将暂停服务，给大家带来不便敬请谅解。',
-                    category: 'system',
-                    author: '系统管理员',
-                    timestamp: new Date(Date.now() - 7200000).toISOString(),
-                    pinned: true
-                },
-                {
-                    id: 3,
-                    content: '请大家及时完成本月的考勤打卡，截止时间为月底。未按时完成打卡的同事请及时联系人事部补卡，逾期将按旷工处理。',
-                    category: 'task',
-                    author: '人事部',
-                    timestamp: new Date(Date.now() - 86400000).toISOString(),
-                    pinned: false
-                },
-                {
-                    id: 4,
-                    content: '会议室A已预订，时间为明天上午10点到12点。参会人员：项目组全体成员。会议主题：Q4季度规划讨论。',
-                    category: 'notice',
-                    author: '行政部',
-                    timestamp: new Date(Date.now() - 172800000).toISOString(),
-                    pinned: false
-                }
-            ];
-            messages = testMessages;
-            saveData();
         }
 
         // ==================== 分类管理 ====================
         function renderCategoryTabs() {
             const container = document.getElementById('categoryTabs');
-            container.innerHTML = categories.map(cat => `
-                <button class="tab-btn ${cat.id === currentCategory ? 'active' : ''}" 
-                        data-category="${cat.id}" 
-                        onclick="switchCategory('${cat.id}')">
-                    <span>${cat.name}</span>
-                    <span class="count" id="count-${cat.id}">0</span>
-                </button>
-            `).join('');
+            
+            if (categories.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            categories.forEach(cat => {
+                const count = messages.filter(m => m.category === cat.id).length;
+                const isActive = cat.id === currentCategory;
+                html += `
+                    <button class="tab-btn ${isActive ? 'active' : ''}" 
+                            data-category="${cat.id}" 
+                            onclick="switchCategory('${cat.id}')">
+                        <span>${cat.name}</span>
+                        <span class="count">${count}</span>
+                    </button>
+                `;
+            });
+            
+            container.innerHTML = html;
         }
 
         function renderCategoryOptions() {
             const select = document.getElementById('messageCategory');
+            
+            if (categories.length === 0) {
+                select.innerHTML = '<option value="">请先创建分类</option>';
+                select.disabled = true;
+                return;
+            }
+            
+            select.disabled = false;
             select.innerHTML = categories.map(cat => `
                 <option value="${cat.id}">${cat.name}</option>
             `).join('');
@@ -862,6 +830,7 @@
             currentCategory = categoryId;
             renderCategoryTabs();
             renderMessages();
+            saveData(); // 保存当前选中的分类
         }
 
         function showNewCategoryInput() {
@@ -881,8 +850,7 @@
                 return;
             }
 
-            // 检查是否已存在
-            const exists = categories.some(c => c.name === name || c.id === name.toLowerCase());
+            const exists = categories.some(c => c.name === name);
             if (exists) {
                 showToast('该分类已存在', 'error');
                 return;
@@ -895,28 +863,49 @@
             };
 
             categories.push(newCategory);
+            
+            // 如果是第一个分类，自动选中
+            if (categories.length === 1) {
+                currentCategory = newCategory.id;
+            }
+            
             saveData();
             renderCategoryTabs();
             renderCategoryOptions();
-            
-            // 选中新分类
             document.getElementById('messageCategory').value = newCategory.id;
             hideNewCategoryInput();
             showToast('分类已添加', 'success');
             
-            // 通知Electron
+            // 如果之前没有分类，重新渲染消息区域
+            if (categories.length === 1) {
+                renderMessages();
+            }
+            
             sendToElectron('category-added', newCategory);
-        }
-
-        function openAddCategoryModal() {
-            // 直接在消息模态框中显示分类输入
-            openAddModal();
-            setTimeout(() => showNewCategoryInput(), 100);
         }
 
         // ==================== 消息渲染 ====================
         function renderMessages() {
             const container = document.getElementById('messagesContainer');
+            
+            // 无分类状态
+            if (categories.length === 0) {
+                container.innerHTML = `
+                    <div class="no-category-state">
+                        <div class="no-category-icon">📂</div>
+                        <div class="no-category-text">暂无消息分类</div>
+                        <div class="no-category-hint">点击右上角"新建"按钮创建分类和消息</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 确保当前分类有效
+            if (!currentCategory || !categories.find(c => c.id === currentCategory)) {
+                currentCategory = categories[0].id;
+                renderCategoryTabs(); // 更新标签激活状态
+            }
+            
             const filtered = messages.filter(m => m.category === currentCategory);
 
             filtered.sort((a, b) => {
@@ -931,7 +920,7 @@
                     <div class="empty-state">
                         <div class="empty-icon">📝</div>
                         <div class="empty-text">暂无${catName}消息</div>
-                        <div class="empty-hint">点击右上角"新建消息"按钮添加</div>
+                        <div class="empty-hint">点击右上角"新建"按钮添加</div>
                     </div>
                 `;
                 return;
@@ -943,29 +932,21 @@
 
             filtered.forEach(msg => {
                 if (msg.pinned && !hasPinned) {
-                    html += '<div class="section-header">置顶消息</div>';
+                    html += '<div class="section-header">置顶</div>';
                     hasPinned = true;
                 }
                 if (!msg.pinned && hasPinned && !hasNormal) {
-                    html += '<div class="section-header">其他消息</div>';
+                    html += '<div class="section-header">其他</div>';
                     hasNormal = true;
                 }
 
                 const timeStr = formatTime(msg.timestamp);
-                const catName = categories.find(c => c.id === msg.category)?.name || '其他';
                 
                 html += `
                     <div class="message-card ${msg.pinned ? 'pinned' : ''}" data-id="${msg.id}">
-                        <div class="message-header">
-                            <span class="category-tag">${catName}</span>
-                            <span class="message-time">${timeStr}</span>
-                        </div>
                         <div class="message-content">${escapeHtml(msg.content)}</div>
                         <div class="message-footer">
-                            <div class="message-author">
-                                <div class="author-avatar">${msg.author[0]}</div>
-                                <span>${escapeHtml(msg.author)}</span>
-                            </div>
+                            <span class="message-time">${timeStr}</span>
                             <div class="message-actions">
                                 <button class="action-btn btn-pin" onclick="togglePin(${msg.id})">
                                     ${msg.pinned ? '取消置顶' : '置顶'}
@@ -981,21 +962,20 @@
             container.innerHTML = html;
         }
 
-        function updateCounts() {
-            categories.forEach(cat => {
-                const count = messages.filter(m => m.category === cat.id).length;
-                const el = document.getElementById(`count-${cat.id}`);
-                if (el) el.textContent = count;
-            });
-        }
-
         // ==================== 消息操作 ====================
         function openAddModal() {
             editingId = null;
             document.getElementById('modalTitle').textContent = '新建消息';
-            document.getElementById('messageCategory').value = currentCategory;
+            
+            // 如果没有分类，提示先创建
+            if (categories.length === 0) {
+                showNewCategoryInput();
+            } else {
+                hideNewCategoryInput();
+                document.getElementById('messageCategory').value = currentCategory || categories[0].id;
+            }
+            
             document.getElementById('messageContent').value = '';
-            hideNewCategoryInput();
             document.getElementById('messageModal').classList.add('active');
         }
 
@@ -1017,6 +997,21 @@
         }
 
         function saveMessage() {
+            // 检查是否有分类
+            if (categories.length === 0) {
+                // 尝试创建新分类
+                const newCatName = document.getElementById('newCategoryName').value.trim();
+                if (!newCatName) {
+                    showToast('请先创建分类', 'error');
+                    showNewCategoryInput();
+                    return;
+                }
+                // 创建分类
+                addNewCategory();
+                // 如果创建失败（如名称为空），返回
+                if (categories.length === 0) return;
+            }
+
             const category = document.getElementById('messageCategory').value;
             const content = document.getElementById('messageContent').value.trim();
             
@@ -1029,18 +1024,28 @@
                 // 编辑模式
                 const msg = messages.find(m => m.id === editingId);
                 if (msg) {
+                    const oldCategory = msg.category;
                     msg.category = category;
                     msg.content = content;
                     msg.timestamp = new Date().toISOString();
+                    
+                    // 如果分类改变，检查旧分类是否需要删除
+                    const oldCategoryMessages = messages.filter(m => m.category === oldCategory && m.id !== editingId);
+                    if (oldCategoryMessages.length === 0) {
+                        // 旧分类无消息了，删除它
+                        categories = categories.filter(c => c.id !== oldCategory);
+                        showToast('原分类已自动删除', 'success');
+                    }
+                    
                     saveData();
                     
                     // 如果修改后的分类不是当前分类，切换到该分类
                     if (category !== currentCategory) {
-                        switchCategory(category);
-                    } else {
-                        renderMessages();
+                        currentCategory = category;
                     }
-                    updateCounts();
+                    
+                    renderCategoryTabs();
+                    renderMessages();
                     closeMessageModal();
                     showToast('消息已更新', 'success');
                     sendToElectron('message-updated', msg);
@@ -1056,14 +1061,11 @@
                     pinned: false
                 };
                 messages.unshift(newMessage);
-                saveData();
                 
-                if (category !== currentCategory) {
-                    switchCategory(category);
-                } else {
-                    renderMessages();
-                }
-                updateCounts();
+                currentCategory = category;
+                saveData();
+                renderCategoryTabs();
+                renderMessages();
                 closeMessageModal();
                 showToast('消息已创建', 'success');
                 sendToElectron('message-added', newMessage);
@@ -1093,10 +1095,27 @@
 
         function confirmDelete() {
             if (deletingId) {
+                const msg = messages.find(m => m.id === deletingId);
+                const categoryId = msg?.category;
+                
                 messages = messages.filter(m => m.id !== deletingId);
+                
+                // 检查该分类是否还有其他消息
+                const remainingInCategory = messages.filter(m => m.category === categoryId);
+                if (remainingInCategory.length === 0 && categoryId) {
+                    // 该分类无消息了，删除分类
+                    categories = categories.filter(c => c.id !== categoryId);
+                    showToast('分类已自动删除', 'success');
+                    
+                    // 如果删除的是当前分类，切换到第一个可用分类
+                    if (currentCategory === categoryId) {
+                        currentCategory = categories[0]?.id || null;
+                    }
+                }
+                
                 saveData();
+                renderCategoryTabs();
                 renderMessages();
-                updateCounts();
                 closeDeleteModal();
                 showToast('消息已删除', 'success');
                 sendToElectron('message-deleted', { id: deletingId });

@@ -7,9 +7,9 @@ const path = require('path')
 // 创建一个函数来加载你的页面
 const createWindow = () => {
     const mainWindow = new BrowserWindow({
-        width: 1024,
+        width: 1040,
         height:768,
-        resizable: false,
+        resizable: true,
         alwaysOnTop: true,
         title:'防务桌面助手',
         autoHideMenuBar: true,
