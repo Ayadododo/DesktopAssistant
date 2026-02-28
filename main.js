@@ -9,7 +9,7 @@ const createWindow = () => {
     const mainWindow = new BrowserWindow({
         width: 1040,
         height:768,
-        resizable: true,
+        resizable: false,
         alwaysOnTop: true,
         title:'防务桌面助手',
         autoHideMenuBar: true,

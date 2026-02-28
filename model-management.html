@@ -3,706 +3,1545 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>型号管理系统 (Product Model Manager)</title>
+    <title>型号管理系统 - 防务连接器</title>
     
-    <!-- Tailwind CSS (Embedded for offline usage) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-    <!-- Alpine.js (Embedded logic for UI state) -->
+    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- SortableJS (For drag and drop) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Noto Sans SC"', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
+    
+    <!-- Sortable.js -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* Custom Scrollbar for a cleaner look */
+        /* 基础样式 */
+        [x-cloak] { display: none !important; }
+        
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f5f9; 
+            background: #f1f5f9;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
+            background: #cbd5e1;
             border-radius: 3px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
+        
+        /* 树形结构 */
+        .tree-children {
+            position: relative;
+            margin-left: 16px;
         }
-
-        /* Drag and Drop Styles */
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: #e0f2fe;
-            border: 2px dashed #38bdf8;
-        }
-        .sortable-drag {
-            cursor: grabbing;
-            opacity: 1;
-            background: white;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            transform: scale(1.02);
-        }
-
-        /* Collapse Toggle Button - Positioned to align with header */
-        .sidebar-toggle {
+        .tree-children::before {
+            content: '';
             position: absolute;
-            right: -12px;
-            top: 20px;
-            width: 24px;
-            height: 24px;
+            left: -10px;
+            top: 0;
+            bottom: 12px;
+            width: 1px;
+            background: #e2e8f0;
+        }
+        
+        .tree-node {
+            position: relative;
+        }
+        .tree-node::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 14px;
+            width: 10px;
+            height: 1px;
+            background: #e2e8f0;
+        }
+        
+        .tree-item {
+            margin-bottom: 1px;
+        }
+        
+        .tree-actions {
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .tree-item:hover .tree-actions {
+            opacity: 1;
+        }
+        
+        /* 内联编辑 */
+        .inline-input {
+            background: white;
+            border: 2px solid #3b82f6;
+            border-radius: 3px;
+            padding: 1px 4px;
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+        }
+        
+        /* 系列选中状态 */
+        .series-selected {
+            background: #dbeafe !important;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        /* 表格容器 - 支持横向滚动 */
+        .table-container {
+            overflow-x: auto;
+            overflow-y: hidden;
+            position: relative;
+        }
+        
+        /* 表格紧凑样式 */
+        .compact-table {
+            table-layout: auto;
+            min-width: 100%;
+        }
+        
+        .compact-table th,
+        .compact-table td {
+            padding: 6px 8px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        
+        /* 列宽调整手柄 */
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            cursor: col-resize;
+            background: transparent;
+            z-index: 10;
+        }
+        .resize-handle:hover {
+            background: #3b82f6;
+        }
+        
+        .compact-input {
+            padding: 2px 4px;
+            font-size: 13px;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            width: 100%;
+            background: transparent;
+            min-width: 60px;
+        }
+        .compact-input:hover {
+            border-color: #cbd5e1;
+            background: white;
+        }
+        .compact-input:focus {
+            border-color: #3b82f6;
+            background: white;
+            outline: none;
+        }
+        
+        /* 列标题拖拽 */
+        .col-header {
+            cursor: move;
+            user-select: none;
+            position: relative;
+            min-width: 80px;
+        }
+        .col-header:hover {
+            background: #f1f5f9;
+        }
+        .col-header.sortable-ghost {
+            opacity: 0.4;
+            background: #e0f2fe;
+        }
+        
+        /* 筛选按钮 */
+        .filter-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .col-header:hover .filter-btn {
+            opacity: 1;
+        }
+        
+        /* 右键菜单 */
+        .context-menu {
+            position: fixed;
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            min-width: 140px;
+        }
+        .context-menu-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .context-menu-item:hover {
+            background: #f1f5f9;
+        }
+        .context-menu-item:first-child {
+            border-radius: 6px 6px 0 0;
+        }
+        .context-menu-item:last-child {
+            border-radius: 0 0 6px 6px;
+        }
+        .context-menu-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 4px 0;
+        }
+        
+        /* 图片模态框 */
+        .image-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            z-index: 20;
-            transition: all 0.2s;
+            cursor: zoom-out;
         }
-        .sidebar-toggle:hover {
+        .image-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        /* 改型列表 */
+        .variant-row {
+            display: grid;
+            grid-template-columns: 1fr 120px 24px;
+            gap: 8px;
+            padding: 6px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            align-items: center;
+        }
+        .variant-row:hover {
             background: #f8fafc;
-            border-color: #38bdf8;
-            transform: scale(1.1);
         }
-
-        /* Filter Dropdown Animation */
+        
+        /* 侧边栏折叠 */
+        .sidebar-collapsed {
+            width: 40px !important;
+            min-width: 40px !important;
+        }
+        .sidebar-collapsed .tree-content,
+        .sidebar-collapsed .sidebar-header-text {
+            display: none;
+        }
+        
+        /* 筛选下拉 */
         .filter-dropdown {
-            transform-origin: top;
-            transition: all 0.2s ease-out;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 120px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 100;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        /* 拖动时的行样式 */
+        .sortable-ghost {
+            opacity: 0.4;
+            background: #e0f2fe;
+        }
+        .sortable-drag {
+            cursor: move;
         }
     </style>
 <base target="_blank">
 </head>
-<body class="bg-slate-50 text-slate-700 h-screen w-screen overflow-hidden flex flex-col"
-      x-data="modelManager()" x-init="initData()">
+<body class="bg-slate-50 text-slate-700 h-screen overflow-hidden text-[13px]" 
+      x-data="modelManager()" 
+      x-init="init()" 
+      @click="hideContextMenu(); closeAllFilters()"
+      @contextmenu.prevent="hideContextMenu()">
 
-    <!-- Main Workspace -->
-    <main class="flex-1 flex overflow-hidden">
-        
-        <!-- LEFT SIDEBAR: Collapsible Tree Structure -->
-        <aside class="bg-white border-r border-slate-200 flex flex-col shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-0 transition-all duration-300 relative"
-               :class="sidebarCollapsed ? 'w-10' : 'w-44'">
-            
-            <!-- Tree Content -->
-            <div x-show="!sidebarCollapsed" class="flex flex-col h-full">
-                <div class="px-3 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">产品目录</span>
-                    <button @click="expandAll()" class="text-xs text-brand-600 hover:text-brand-700 font-medium hover:bg-brand-50 px-2 py-1 rounded transition-colors">全部展开</button>
-                </div>
-                
-                <div class="flex-1 overflow-y-auto p-2 space-y-1" id="tree-container">
-                    <template x-for="series in treeData" :key="series.id">
-                        <div class="select-none">
-                            <div @click="series.isOpen = !series.isOpen" 
-                                 class="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-slate-50 transition-colors group">
-                                <svg class="w-3 h-3 text-slate-400 transition-transform duration-200" :class="{'rotate-90': series.isOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                <span class="font-medium text-slate-700 text-xs group-hover:text-brand-600 truncate" x-text="series.name"></span>
-                            </div>
-
-                            <div x-show="series.isOpen" x-collapse class="ml-3 border-l border-slate-200 pl-2 space-y-1 mt-1">
-                                <template x-for="cat in series.categories" :key="cat.id">
-                                    <div>
-                                        <div @click="cat.isOpen = !cat.isOpen"
-                                             class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer hover:bg-slate-50 text-xs transition-colors">
-                                            <svg class="w-3 h-3 text-slate-400 transition-transform duration-200" :class="{'rotate-90': cat.isOpen}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                            <span class="text-slate-600 truncate" x-text="cat.name"></span>
-                                        </div>
-
-                                        <div x-show="cat.isOpen" x-collapse class="ml-3 border-l border-slate-200 pl-2 space-y-1 mt-1">
-                                            <template x-for="model in cat.models" :key="model.id">
-                                                <div @click="selectModel(model)"
-                                                     class="flex items-center gap-2 px-2 py-1 rounded cursor-pointer text-xs transition-all"
-                                                     :class="selectedModelId === model.id ? 'bg-brand-50 text-brand-700 font-medium shadow-sm ring-1 ring-brand-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'">
-                                                    <svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                                                    <span class="truncate" x-text="model.name"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </template>
-                </div>
+    <!-- 顶部导航 -->
+    <header class="bg-white border-b border-slate-200 h-12 flex items-center px-4 shadow-sm z-20">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white shadow-md">
+                <i class="fas fa-layer-group text-sm"></i>
             </div>
-
-            <!-- Collapsed State -->
-            <div x-show="sidebarCollapsed" class="h-full flex flex-col items-center py-6">
-                <svg class="w-4 h-4 text-slate-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                <span class="text-[10px] text-slate-400 writing-vertical">目录</span>
-            </div>
-
-            <!-- Sidebar Toggle Button - Aligned with header area -->
-            <button @click="sidebarCollapsed = !sidebarCollapsed" 
-                    class="sidebar-toggle"
-                    :class="sidebarCollapsed ? 'rotate-180' : ''">
-                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            </button>
-        </aside>
-
-        <!-- RIGHT CONTENT AREA -->
-        <section class="flex-1 flex flex-col bg-slate-50/50 relative min-w-0">
-            
-            <!-- TOP: Visualization & Header -->
-            <div class="h-24 bg-white border-b border-slate-200 shrink-0 flex shadow-sm z-10">
-                <!-- Image Preview Area -->
-                <div @click="openImageModal()" 
-                     class="w-28 border-r border-slate-100 p-2 flex items-center justify-center bg-slate-50 relative group overflow-hidden shrink-0 cursor-pointer hover:bg-slate-100 transition-colors">
-                    <div class="absolute inset-0 bg-grid-slate-200 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] bg-[length:20px_20px]"></div>
-                    
-                    <template x-if="currentModel">
-                        <div class="relative z-10 text-center">
-                            <div class="w-16 h-12 bg-white rounded-lg shadow-md border border-slate-200 flex items-center justify-center mb-1 mx-auto overflow-hidden group-hover:shadow-lg transition-shadow">
-                                <img src="https://placehold.co/400x250/e2e8f0/475569?text=Diagram" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" alt="Diagram">
-                            </div>
-                            <p class="text-[9px] text-slate-400 font-mono">点击放大</p>
-                        </div>
-                    </template>
-                    <template x-if="!currentModel">
-                        <div class="text-slate-300 flex flex-col items-center">
-                            <svg class="w-5 h-5 mb-0.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Model Meta Info -->
-                <div class="flex-1 px-4 py-3 flex items-center justify-between min-w-0">
-                    <div class="min-w-0 flex-1">
-                        <h2 class="text-base font-bold text-slate-800 truncate" x-text="currentModel ? currentModel.name : '未选择型号'"></h2>
-                        <p class="text-slate-500 text-xs mt-0.5 truncate" x-text="currentModel ? '系列代码: ' + currentModel.code + ' | 更新: 2023-10-24' : '请在左侧选择型号'"></p>
-                        
-                        <div class="flex gap-4 mt-2" x-show="currentModel">
-                            <div class="flex items-baseline gap-1">
-                                <span class="text-lg font-bold text-slate-700" x-text="specs.length"></span>
-                                <span class="text-xs text-slate-400">规格</span>
-                            </div>
-                            <div class="flex items-baseline gap-1">
-                                <span class="text-lg font-bold text-slate-700" x-text="allKeys.length"></span>
-                                <span class="text-xs text-slate-400">属性</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Add Button - Prominent position -->
-                    <div x-show="currentModel" class="shrink-0 ml-4">
-                        <button @click="openAddModal()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 shadow-md shadow-brand-200 transition-all flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            新增规格
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- BOTTOM: Data Grid -->
-            <div class="flex-1 overflow-hidden flex flex-col p-3">
-                <div class="bg-white rounded-xl border border-slate-200 shadow-sm flex-1 overflow-hidden flex flex-col">
-                    <div class="table-scroll-container flex-1 overflow-y-auto">
-                        <div class="min-w-max">
-                            <!-- Table Header -->
-                            <div class="flex px-4 py-2.5 bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0 sticky top-0 z-10">
-                                <div class="w-14 shrink-0 border-r border-slate-200 mr-2 flex items-center">排序</div>
-                                
-                                <template x-for="key in allKeys" :key="key">
-                                    <div class="w-32 shrink-0 px-2 border-r border-slate-200 last:border-r-0 relative group">
-                                        <div class="flex items-center justify-between">
-                                            <span class="truncate" x-text="key"></span>
-                                            <button @click="toggleFilter(key)" 
-                                                    class="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-slate-200 rounded"
-                                                    :class="{'opacity-100 text-brand-600 bg-brand-50': activeFilters[key] && activeFilters[key].length > 0}">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                                            </button>
-                                        </div>
-                                        
-                                        <div x-show="openFilterKey === key" 
-                                             @click.away="openFilterKey = null"
-                                             class="absolute top-full left-0 mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-20 p-2 filter-dropdown">
-                                            <div class="text-xs text-slate-400 mb-2 font-medium" x-text="'筛选: ' + key"></div>
-                                            <div class="max-h-40 overflow-y-auto space-y-1">
-                                                <template x-for="value in getUniqueValues(key)" :key="value">
-                                                    <label class="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 p-1.5 rounded">
-                                                        <input type="checkbox" 
-                                                               :value="value" 
-                                                               x-model="activeFilters[key]"
-                                                               class="rounded border-slate-300 text-brand-500 focus:ring-brand-500">
-                                                        <span class="truncate" x-text="value === '-' ? '(空值)' : value"></span>
-                                                    </label>
-                                                </template>
-                                            </div>
-                                            <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between">
-                                                <button @click="activeFilters[key] = []" class="text-xs text-slate-500 hover:text-slate-700">清除</button>
-                                                <button @click="openFilterKey = null" class="text-xs text-brand-600 font-medium">确定</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                                
-                                <div class="w-20 shrink-0 text-right">操作</div>
-                            </div>
-
-                            <!-- Draggable List -->
-                            <div id="spec-list" class="divide-y divide-slate-100">
-                                <template x-for="(spec, index) in filteredSpecs" :key="spec.id">
-                                    <div class="flex px-4 py-2.5 items-center hover:bg-slate-50 transition-colors group cursor-move bg-white text-xs">
-                                        <div class="w-14 shrink-0 flex items-center gap-1.5 text-slate-400 border-r border-slate-100 mr-2">
-                                            <svg class="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                                            <span class="text-xs font-mono bg-slate-100 px-1.5 py-0.5 rounded" x-text="spec.sortOrder || (index + 1)"></span>
-                                        </div>
-                                        
-                                        <template x-for="key in allKeys" :key="key">
-                                            <div class="w-32 shrink-0 px-2 text-slate-700 border-r border-slate-100 last:border-r-0"
-                                                 :class="{'text-slate-300 italic': !spec[key] || spec[key] === '-'}">
-                                                <input type="text" 
-                                                       x-model="spec[key]"
-                                                       @blur="updateSpecProperty(spec.id, key, spec[key])"
-                                                       class="w-full bg-transparent border-none p-0 text-xs focus:ring-0 focus:bg-brand-50 rounded px-1 -mx-1 transition-colors"
-                                                       :placeholder="spec[key] ? '' : '-'">
-                                            </div>
-                                        </template>
-                                        
-                                        <div class="w-20 shrink-0 text-right opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-1">
-                                            <button @click="openEditModal(spec)" class="text-slate-400 hover:text-brand-600 p-1 rounded hover:bg-slate-100">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                            </button>
-                                            <button @click="deleteSpec(spec.id)" class="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </template>
-                                
-                                <div x-show="filteredSpecs.length === 0" class="py-16 text-center">
-                                    <svg class="w-10 h-10 mx-auto mb-3 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <p class="text-sm text-slate-400">没有找到匹配的型号数据</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-2 text-xs text-slate-400 flex justify-between px-1">
-                    <span>提示: 拖拽行可调整排序，点击单元格可直接编辑，表头可筛选。</span>
-                    <span x-text="'显示 ' + filteredSpecs.length + ' / ' + specs.length + ' 条记录'"></span>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Image Preview Modal -->
-    <div x-show="showImageModal" class="fixed inset-0 z-50 flex items-center justify-center" style="display: none;">
-        <div x-show="showImageModal" 
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             @click="showImageModal = false"
-             class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"></div>
-        
-        <div x-show="showImageModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-xl shadow-2xl max-w-4xl max-h-[90vh] p-4 relative z-10">
-            <button @click="showImageModal = false" class="absolute -top-10 right-0 text-white hover:text-slate-200">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <img src="https://placehold.co/800x600/e2e8f0/475569?text=Product+Diagram+HD" class="max-w-full max-h-[80vh] rounded-lg" alt="Full Diagram">
-            <div class="mt-2 text-center text-xs text-slate-500" x-text="currentModel ? currentModel.code + '_ASM.jpg' : ''"></div>
+            <h1 class="text-base font-bold text-slate-800">型号管理系统</h1>
         </div>
-    </div>
+        <div class="ml-auto flex items-center gap-2">
+            <button @click="exportCSV()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded text-xs font-medium transition-colors flex items-center gap-1.5">
+                <i class="fas fa-file-csv"></i> 导出CSV
+            </button>
+            <label class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer">
+                <i class="fas fa-file-import"></i> 导入CSV
+                <input type="file" @change="importCSV($event)" accept=".csv" class="hidden">
+            </label>
+        </div>
+    </header>
 
-    <!-- Add/Edit Spec Modal -->
-    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center" style="display: none;">
-        <div x-show="showModal" 
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             @click="closeModal()"
-             class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+    <!-- 主体内容 -->
+    <div class="flex h-[calc(100vh-48px)]">
         
-        <div x-show="showModal"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="bg-white rounded-xl shadow-2xl w-[500px] max-h-[80vh] flex flex-col relative z-10 border border-slate-200">
+        <!-- 第一部分：树形型号分类 -->
+        <aside :class="sidebarCollapsed ? 'sidebar-collapsed' : 'w-64'" 
+               class="bg-white border-r border-slate-200 flex flex-col shadow-sm z-10 transition-all duration-200 relative">
             
-            <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-xl">
-                <h3 class="text-sm font-bold text-slate-800" x-text="editingSpec ? '编辑型号规格' : '新增型号规格'"></h3>
-                <button @click="closeModal()" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <div class="h-10 border-b border-slate-100 flex items-center justify-between px-2 bg-slate-50/50">
+                <span class="sidebar-header-text font-semibold text-slate-700 text-xs flex items-center gap-1.5 px-1">
+                    <i class="fas fa-sitemap text-blue-500"></i> 型号分类
+                </span>
+                <button @click="sidebarCollapsed = !sidebarCollapsed" 
+                        class="w-7 h-7 hover:bg-slate-200 rounded flex items-center justify-center text-slate-500 transition-all"
+                        :class="sidebarCollapsed ? 'mx-auto' : ''">
+                    <i class="fas fa-chevron-left text-xs" :class="sidebarCollapsed ? 'rotate-180' : ''"></i>
                 </button>
             </div>
             
-            <div class="p-5 overflow-y-auto flex-1 space-y-4">
-                <div x-show="!editingSpec">
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">系列前缀 (锁定)</label>
-                    <div class="flex">
-                        <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-300 bg-slate-100 text-slate-500 text-sm font-mono" x-text="currentModel ? currentModel.code : '---'"></span>
-                        <input type="text" x-model="newSpec.suffix" placeholder="输入编号后缀" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-r-lg border border-slate-300 text-sm focus:ring-brand-500 focus:border-brand-500">
-                    </div>
+            <div class="tree-content flex-1 overflow-y-auto p-1.5" id="categoryTree">
+                <!-- 递归树形渲染 -->
+                <template x-for="(item, index) in categories" :key="item.id">
+                    <div x-html="renderTreeItem(item, index, categories)"></div>
+                </template>
+                
+                <!-- 根级添加 -->
+                <div class="mt-2 pt-2 border-t border-slate-100 px-1">
+                    <button @click="addRootFolder()" class="w-full py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded text-xs font-medium flex items-center justify-center gap-1 transition-colors">
+                        <i class="fas fa-folder-plus text-[10px]"></i> 新增领域
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 第二部分：列表型号展示 -->
+        <main class="flex-1 flex flex-col bg-slate-50 min-w-0 overflow-hidden">
+            <div class="p-3 flex-1 overflow-auto">
+                <!-- 面包屑 -->
+                <div class="mb-2 flex items-center gap-2 text-xs text-slate-500">
+                    <span class="font-medium">型号管理</span>
+                    <i class="fas fa-chevron-right text-[10px]"></i>
+                    <span x-show="selectedSeries" class="flex items-center gap-1">
+                        <span x-text="breadcrumbPath" class="font-medium text-slate-700"></span>
+                    </span>
+                    <span x-show="!selectedSeries" class="text-slate-400">请选择系列</span>
                 </div>
 
+                <!-- 型号列表 -->
+                <div x-show="selectedSeries" class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="table-container" id="tableContainer">
+                        <table class="compact-table" id="modelTable">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr id="tableHeader">
+                                    <th class="w-10 text-center" style="min-width: 40px;">
+                                        <i class="fas fa-grip-lines text-slate-400 text-xs"></i>
+                                    </th>
+                                    <th class="font-semibold text-slate-600" style="min-width: 120px; width: 150px;">系列型号</th>
+                                    <template x-for="(col, index) in dynamicColumns" :key="col.name">
+                                        <th class="col-header font-semibold text-slate-600 relative group" 
+                                            :data-col-index="index"
+                                            :style="`min-width: ${col.width || 100}px; width: ${col.width || 100}px;`">
+                                            <div class="flex items-center justify-between gap-1">
+                                                <span x-text="col.name" class="flex-1 truncate"></span>
+                                                <button @click.stop="toggleFilter(col.name)" class="filter-btn text-slate-400 hover:text-blue-500 p-0.5">
+                                                    <i class="fas fa-filter text-[10px]"></i>
+                                                </button>
+                                            </div>
+                                            <!-- 筛选下拉 -->
+                                            <div x-show="activeFilter === col.name" x-cloak @click.stop
+                                                 class="filter-dropdown mt-1 p-2">
+                                                <div class="text-xs font-medium text-slate-600 mb-1">筛选: <span x-text="col.name"></span></div>
+                                                <label class="flex items-center gap-2 py-1 text-xs cursor-pointer hover:bg-slate-50">
+                                                    <input type="checkbox" 
+                                                           :checked="isAllSelected(col.name)" 
+                                                           @change="toggleSelectAll(col.name)" 
+                                                           class="rounded">
+                                                    <span>全选</span>
+                                                </label>
+                                                <div class="border-t border-slate-100 my-1"></div>
+                                                <template x-for="value in getUniqueValues(col.name)" :key="value">
+                                                    <label class="flex items-center gap-2 py-1 text-xs cursor-pointer hover:bg-slate-50">
+                                                        <input type="checkbox" 
+                                                               :value="value" 
+                                                               :checked="(columnFilters[col.name] || []).includes(value)"
+                                                               @change="toggleFilterValue(col.name, value)"
+                                                               class="rounded">
+                                                        <span x-text="value || '(空)'" class="truncate"></span>
+                                                    </label>
+                                                </template>
+                                                <div class="border-t border-slate-100 my-1"></div>
+                                                <button @click="clearFilter(col.name)" class="w-full text-xs text-red-500 hover:bg-red-50 py-1 rounded">清除筛选</button>
+                                            </div>
+                                            <!-- 列宽调整手柄 -->
+                                            <div class="resize-handle" @mousedown="startResize($event, index)"></div>
+                                        </th>
+                                    </template>
+                                    <th class="w-24" style="min-width: 80px;">
+                                        <input x-show="addingColumn" 
+                                               x-model="newColumnName" 
+                                               @blur="confirmAddColumn()" 
+                                               @keydown.enter="confirmAddColumn()"
+                                               @keydown.escape="addingColumn = false"
+                                               x-ref="newColInput"
+                                               class="w-full text-xs px-1 py-0.5 border border-blue-400 rounded"
+                                               placeholder="列名">
+                                        <button x-show="!addingColumn" @click="startAddColumn()" class="text-blue-500 hover:text-blue-700 text-xs font-medium flex items-center gap-1">
+                                            <i class="fas fa-plus text-[10px]"></i> 新增列
+                                        </button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="modelTableBody" class="divide-y divide-slate-100">
+                                <template x-for="(model, index) in filteredModels" :key="model.id">
+                                    <tr class="hover:bg-slate-50 transition-colors cursor-pointer sortable-row"
+                                        :class="selectedModel?.id === model.id ? 'bg-blue-50' : ''"
+                                        :data-model-id="model.id"
+                                        @click="selectModel(model)"
+                                        @contextmenu.prevent.stop="showContextMenu($event, index)">
+                                        <td class="text-center cursor-move handle text-slate-400">
+                                            <i class="fas fa-grip-vertical text-xs"></i>
+                                        </td>
+                                        <td @dblclick="editModelName(model, $event)">
+                                            <div class="font-medium text-slate-800" x-show="!model.editingName" x-text="model.name"></div>
+                                            <input x-show="model.editingName" 
+                                                   x-model="model.name" 
+                                                   @blur="saveModelName(model)"
+                                                   @keydown.enter="saveModelName(model)"
+                                                   class="compact-input font-medium"
+                                                   type="text">
+                                            <div class="text-[11px] text-slate-500" x-text="model.code"></div>
+                                        </td>
+                                        <template x-for="(col, colIndex) in dynamicColumns" :key="col.name">
+                                            <td>
+                                                <input type="text" 
+                                                       x-model="model.features[col.name]" 
+                                                       @click.stop
+                                                       @change="saveToLocalStorage()"
+                                                       class="compact-input"
+                                                       placeholder="-">
+                                            </td>
+                                        </template>
+                                        <td></td>
+                                    </tr>
+                                </template>
+                                
+                                <!-- 新增行 -->
+                                <tr class="bg-slate-50/50 hover:bg-slate-100 cursor-pointer transition-colors" 
+                                    @click="addNewRow()"
+                                    id="addNewRowBtn">
+                                    <td class="text-center text-slate-400">
+                                        <i class="fas fa-plus text-xs"></i>
+                                    </td>
+                                    <td colspan="100%" class="text-slate-500 text-xs py-2">
+                                        点击添加新型号...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div x-show="currentModels.length === 0 && selectedSeries" class="p-6 text-center text-slate-400 text-xs">
+                        暂无型号数据，点击下方添加
+                    </div>
+                </div>
+                
+                <div x-show="!selectedSeries" class="flex items-center justify-center h-64 text-slate-400 text-xs">
+                    <div class="text-center">
+                        <i class="fas fa-arrow-left text-2xl mb-2 text-slate-300"></i>
+                        <p>请从左侧选择具体系列</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 第三部分：改型详情 -->
+        <aside x-show="selectedModel" x-transition class="w-80 bg-white border-l border-slate-200 flex flex-col shadow-sm z-10">
+            <div class="p-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-700 text-sm flex items-center gap-1.5">
+                    <i class="fas fa-info-circle text-blue-500"></i> 改型详情
+                </h3>
+                <button @click="selectedModel = null" class="w-6 h-6 hover:bg-slate-200 rounded flex items-center justify-center text-slate-500">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-3" x-show="selectedModel">
+                <!-- 系列总图 -->
+                <div class="mb-3">
+                    <label class="block text-xs font-medium text-slate-700 mb-1">系列总图</label>
+                    <div class="bg-slate-50 rounded-lg p-2 text-center cursor-pointer border border-slate-200 hover:border-blue-400 transition-colors relative"
+                         @click="selectedModel.seriesImage ? showImageModal = true : $refs.seriesImage.click()"
+                         @dragover.prevent="$event.currentTarget.classList.add('border-blue-400', 'bg-blue-50')"
+                         @dragleave.prevent="$event.currentTarget.classList.remove('border-blue-400', 'bg-blue-50')"
+                         @drop.prevent="handleImageDrop($event)">
+                        <input type="file" x-ref="seriesImage" class="hidden" accept="image/*" @change="handleImageUpload($event)">
+                        <template x-if="selectedModel?.seriesImage">
+                            <img :src="selectedModel.seriesImage" class="w-full h-32 object-contain rounded">
+                        </template>
+                        <template x-if="!selectedModel?.seriesImage">
+                            <div class="py-6 text-slate-400">
+                                <i class="fas fa-cloud-upload-alt text-2xl mb-1"></i>
+                                <p class="text-xs">点击或拖拽上传</p>
+                            </div>
+                        </template>
+                        <button x-show="selectedModel?.seriesImage" @click.stop="selectedModel.seriesImage = null; saveToLocalStorage()" 
+                                class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-red-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <p x-show="selectedModel?.seriesImage" class="text-[10px] text-slate-500 mt-1 text-center">点击图片放大查看</p>
+                </div>
+
+                <!-- 壳体号及改型 -->
                 <div>
-                    <div class="flex justify-between items-center mb-3">
-                        <label class="block text-xs font-semibold text-slate-500 uppercase">属性配置</label>
-                        <button @click="addNewPropertyField()" class="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1 px-2 py-1 rounded hover:bg-brand-50 transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            添加属性
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-medium text-slate-700">壳体号及改型</label>
+                    </div>
+                    
+                    <!-- 内嵌添加壳体号 -->
+                    <div class="shell-add-inline" x-show="addingShell" x-cloak>
+                        <input type="text" 
+                               x-model="newShellCode" 
+                               @keydown.enter="confirmAddShell()"
+                               @blur="confirmAddShell()"
+                               x-ref="shellInput"
+                               class="compact-input flex-1"
+                               placeholder="输入壳体号 (如: A)">
+                        <button @click="cancelAddShell()" class="text-slate-400 hover:text-slate-600">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                     
+                    <button x-show="!addingShell" 
+                            @click="startAddShell()" 
+                            class="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors mb-3">
+                        <i class="fas fa-plus text-[10px]"></i> 添加壳体号
+                    </button>
+                    
                     <div class="space-y-2">
-                        <template x-for="(prop, index) in newSpec.properties" :key="index">
-                            <div class="flex gap-2 items-center">
-                                <input type="text" x-model="prop.key" placeholder="属性名" class="w-1/3 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
-                                <input type="text" x-model="prop.value" placeholder="属性值" class="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none">
-                                <button @click="removePropertyField(index)" class="text-slate-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
+                        <template x-for="(shell, shellIndex) in selectedModel?.shells || []" :key="shellIndex">
+                            <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                <!-- 壳体号标题 -->
+                                <div class="flex items-center justify-between px-2 py-1.5 bg-slate-100 border-b border-slate-200">
+                                    <span class="font-bold text-slate-700 text-sm" x-text="shell.code"></span>
+                                    <button @click="removeShellType(shellIndex)" class="text-red-400 hover:text-red-600 w-5 h-5 flex items-center justify-center">
+                                        <i class="fas fa-times text-[10px]"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- 改型列表 -->
+                                <div class="divide-y divide-slate-100">
+                                    <template x-for="(variant, varIndex) in shell.variants" :key="varIndex">
+                                        <div class="variant-row">
+                                            <input type="text" x-model="variant.model" placeholder="具体型号" 
+                                                   class="compact-input font-medium text-slate-700"
+                                                   @change="saveToLocalStorage()">
+                                            <input type="text" x-model="variant.uniqueId" placeholder="唯一编号" 
+                                                   class="compact-input text-[11px] text-slate-500 font-mono"
+                                                   @change="saveToLocalStorage()">
+                                            <button @click="removeVariant(shell, varIndex)" class="text-red-400 hover:text-red-600 w-5 h-5 flex items-center justify-center">
+                                                <i class="fas fa-times text-[10px]"></i>
+                                            </button>
+                                        </div>
+                                    </template>
+                                    
+                                    <!-- 添加改型按钮 -->
+                                    <div class="px-2 py-1.5 bg-white cursor-pointer hover:bg-slate-50 transition-colors text-center"
+                                         @click="addVariant(shell)">
+                                        <span class="text-[11px] text-blue-500 font-medium">
+                                            <i class="fas fa-plus text-[8px]"></i> 添加改型
+                                        </span>
+                                    </div>
+                                    
+                                    <div x-show="shell.variants.length === 0" class="px-2 py-2 text-[11px] text-slate-400 text-center">
+                                        暂无改型
+                                    </div>
+                                </div>
                             </div>
                         </template>
-                    </div>
-                    
-                    <div x-show="newSpec.properties.length === 0" class="text-center py-6 bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                        <p class="text-sm text-slate-400">暂无自定义属性</p>
+                        
+                        <div x-show="!selectedModel?.shells || selectedModel.shells.length === 0" class="text-center py-4 text-slate-400 text-xs bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                            暂无壳体号，点击上方按钮添加
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-xl flex justify-end gap-2">
-                <button @click="closeModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-sm hover:bg-slate-50 transition-colors">取消</button>
-                <button @click="saveSpec()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 shadow-md shadow-brand-200 transition-colors">保存</button>
-            </div>
+        </aside>
+    </div>
+
+    <!-- 图片放大模态框 -->
+    <div x-show="showImageModal && selectedModel?.seriesImage" x-cloak x-transition class="image-modal" @click="showImageModal = false">
+        <img :src="selectedModel.seriesImage" @click.stop>
+    </div>
+
+    <!-- 右键菜单 -->
+    <div x-show="contextMenu.show" x-cloak 
+         class="context-menu" 
+         :style="`left: ${contextMenu.x}px; top: ${contextMenu.y}px`"
+         @click.stop>
+        <div class="context-menu-item text-blue-600" @click="addRowAt(contextMenu.index, 'above')">
+            <i class="fas fa-arrow-up text-xs"></i> 上方添加行
+        </div>
+        <div class="context-menu-item text-blue-600" @click="addRowAt(contextMenu.index, 'below')">
+            <i class="fas fa-arrow-down text-xs"></i> 下方添加行
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item text-red-500" @click="deleteRowAt(contextMenu.index)">
+            <i class="fas fa-trash text-xs"></i> 删除此行
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
     <script>
         function modelManager() {
             return {
+                categories: [],
+                models: [],
+                dynamicColumns: [
+                    { name: '镀层', width: 80 },
+                    { name: '防护等级', width: 90 },
+                    { name: '电压', width: 70 },
+                    { name: '电流', width: 70 },
+                    { name: '耐插拔', width: 80 }
+                ],
+                selectedSeries: null,
+                selectedModel: null,
                 sidebarCollapsed: false,
-                selectedModelId: null,
-                currentModel: null,
-                specs: [],
-                showModal: false,
                 showImageModal: false,
-                editingSpec: null,
-                openFilterKey: null,
-                activeFilters: {},
                 
-                newSpec: {
-                    suffix: '',
-                    properties: []
-                },
-
-                initData() {
-                    this.generateMockData();
-                    
+                // 筛选状态 - 改为对象存储每个列的选中值数组
+                columnFilters: {},
+                activeFilter: null,
+                
+                // 新增列
+                addingColumn: false,
+                newColumnName: '',
+                
+                // 内联编辑
+                editingId: null,
+                editingName: '',
+                
+                // 右键菜单
+                contextMenu: { show: false, x: 0, y: 0, index: null },
+                
+                // 壳体号内嵌添加
+                addingShell: false,
+                newShellCode: '',
+                
+                // 列宽调整
+                resizingCol: null,
+                startX: 0,
+                startWidth: 0,
+                
+                init() {
+                    this.loadFromLocalStorage();
+                    if (this.categories.length === 0) {
+                        this.initSampleData();
+                    }
                     this.$nextTick(() => {
-                        const el = document.getElementById('spec-list');
-                        Sortable.create(el, {
-                            animation: 150,
-                            ghostClass: 'sortable-ghost',
-                            dragClass: 'sortable-drag',
-                            handle: '.group',
-                            onEnd: (evt) => {
-                                const itemMoved = this.specs.splice(evt.oldIndex, 1)[0];
-                                this.specs.splice(evt.newIndex, 0, itemMoved);
-                                this.updateSortOrders();
-                            }
-                        });
+                        this.initSortable();
+                        this.initColumnResize();
                     });
                 },
-
-                get allKeys() {
-                    if (this.specs.length === 0) return [];
-                    
-                    const keyStats = {};
-                    
-                    this.specs.forEach(spec => {
-                        Object.keys(spec).forEach(key => {
-                            if (key === 'id' || key === 'sortOrder') return;
-                            
-                            if (!keyStats[key]) {
-                                keyStats[key] = { total: 0, empty: 0 };
-                            }
-                            keyStats[key].total++;
-                            
-                            const val = spec[key];
-                            if (!val || val === '-' || val === '') {
-                                keyStats[key].empty++;
-                            }
-                        });
-                    });
-
-                    const validKeys = Object.keys(keyStats).filter(key => {
-                        return keyStats[key].empty < keyStats[key].total;
-                    });
-
-                    const priority = ['壳体编号', '型号全称', '材质', '防护等级', '状态', '电压', '电流'];
-                    const sortedKeys = [];
-                    
-                    priority.forEach(k => {
-                        if (validKeys.includes(k)) {
-                            sortedKeys.push(k);
-                        }
-                    });
-                    
-                    validKeys.forEach(k => {
-                        if (!priority.includes(k)) {
-                            sortedKeys.push(k);
-                        }
-                    });
-                    
-                    return sortedKeys;
-                },
-
-                get filteredSpecs() {
-                    if (Object.keys(this.activeFilters).length === 0) return this.specs;
-                    
-                    return this.specs.filter(spec => {
-                        for (let [key, selectedValues] of Object.entries(this.activeFilters)) {
-                            if (selectedValues && selectedValues.length > 0) {
-                                const specValue = spec[key] || '-';
-                                if (!selectedValues.includes(specValue)) {
-                                    return false;
-                                }
-                            }
-                        }
-                        return true;
-                    });
-                },
-
-                getUniqueValues(key) {
-                    const values = new Set();
-                    this.specs.forEach(spec => {
-                        const val = spec[key] || '-';
-                        values.add(val);
-                    });
-                    return Array.from(values).sort();
-                },
-
-                toggleFilter(key) {
-                    if (this.openFilterKey === key) {
-                        this.openFilterKey = null;
-                    } else {
-                        this.openFilterKey = key;
-                        if (!this.activeFilters[key]) {
-                            this.activeFilters[key] = [];
-                        }
-                    }
-                },
-
-                selectModel(model) {
-                    this.selectedModelId = model.id;
-                    this.currentModel = model;
-                    this.activeFilters = {};
-                    this.fetchSpecsForModel(model.id);
-                },
-
-                expandAll() {
-                    this.treeData.forEach(series => {
-                        series.isOpen = true;
-                        if(series.categories) {
-                            series.categories.forEach(cat => cat.isOpen = true);
-                        }
-                    });
-                },
-
-                updateSortOrders() {
-                    this.specs.forEach((spec, index) => {
-                        spec.sortOrder = index + 1;
-                    });
-                },
-
-                updateSpecProperty(id, key, value) {
-                    const spec = this.specs.find(s => s.id === id);
-                    if (spec) {
-                        spec[key] = value;
-                    }
-                },
-
-                openImageModal() {
-                    if (this.currentModel) {
-                        this.showImageModal = true;
-                    }
-                },
-
-                openAddModal() {
-                    this.editingSpec = null;
-                    this.newSpec = {
-                        suffix: '',
-                        properties: [
-                            { key: '材质', value: '' },
-                            { key: '防护等级', value: '' }
-                        ]
-                    };
-                    this.showModal = true;
-                },
-
-                openEditModal(spec) {
-                    this.editingSpec = spec;
-                    const properties = Object.entries(spec)
-                        .filter(([key]) => key !== 'id' && key !== 'sortOrder')
-                        .map(([key, value]) => ({ key, value }));
-                    
-                    this.newSpec = {
-                        suffix: '',
-                        properties: properties
-                    };
-                    this.showModal = true;
-                },
-
-                closeModal() {
-                    this.showModal = false;
-                    this.editingSpec = null;
-                },
-
-                addNewPropertyField() {
-                    this.newSpec.properties.push({ key: '', value: '' });
-                },
-
-                removePropertyField(index) {
-                    this.newSpec.properties.splice(index, 1);
-                },
-
-                saveSpec() {
-                    if (!this.editingSpec && !this.newSpec.suffix) {
-                        alert('请输入编号后缀');
-                        return;
-                    }
-
-                    const specData = {
-                        sortOrder: this.editingSpec ? this.editingSpec.sortOrder : this.specs.length + 1
-                    };
-
-                    this.newSpec.properties.forEach(prop => {
-                        if (prop.key) {
-                            specData[prop.key] = prop.value || '-';
-                        }
-                    });
-
-                    if (this.editingSpec) {
-                        Object.assign(this.editingSpec, specData);
-                    } else {
-                        const newId = 'spec-' + Date.now();
-                        const prefix = this.currentModel ? this.currentModel.code : 'XXX';
-                        specData.id = newId;
-                        specData['壳体编号'] = prefix + this.newSpec.suffix;
-                        this.specs.push(specData);
-                    }
-
-                    this.closeModal();
-                },
-
-                deleteSpec(id) {
-                    if (confirm('确定要删除这个型号规格吗？')) {
-                        this.specs = this.specs.filter(s => s.id !== id);
-                        this.updateSortOrders();
-                    }
-                },
-
-                generateMockData() {
-                    this.treeData = [
+                
+                initSampleData() {
+                    this.categories = [
                         {
-                            id: 's1', name: '工业连接器', isOpen: true,
-                            categories: [
+                            id: '1',
+                            name: '防务连接器',
+                            type: 'folder',
+                            expanded: true,
+                            children: [
                                 {
-                                    id: 'c1', name: '圆形系列', isOpen: true,
-                                    models: [
-                                        { id: 'm1', name: 'YX-2000', code: 'YX2K' },
-                                        { id: 'm2', name: 'YX-3000', code: 'YX3K' }
-                                    ]
-                                },
-                                {
-                                    id: 'c2', name: '矩形系列', isOpen: false,
-                                    models: [
-                                        { id: 'm4', name: 'RJ45', code: 'RJ45' }
+                                    id: '1-1',
+                                    name: '圆形连接器',
+                                    type: 'folder',
+                                    expanded: true,
+                                    children: [
+                                        { id: '1-1-1', name: '599大系列', type: 'series', expanded: false, children: [] }
                                     ]
                                 }
                             ]
                         },
                         {
-                            id: 's2', name: '传感器', isOpen: false,
-                            categories: [
+                            id: '2',
+                            name: '工业连接器',
+                            type: 'folder',
+                            expanded: false,
+                            children: [
                                 {
-                                    id: 'c3', name: '压力型', isOpen: false,
-                                    models: [
-                                        { id: 'm6', name: 'PS-100', code: 'PS100' }
+                                    id: '2-1',
+                                    name: '车载连接器',
+                                    type: 'folder',
+                                    expanded: false,
+                                    children: [
+                                        {
+                                            id: '2-1-1',
+                                            name: '电池连接器',
+                                            type: 'folder',
+                                            expanded: false,
+                                            children: [
+                                                { id: '2-1-1-1', name: 'XC158系列', type: 'series', expanded: false, children: [] }
+                                            ]
+                                        }
                                     ]
                                 }
                             ]
                         }
                     ];
                     
-                    this.selectModel(this.treeData[0].categories[0].models[0]);
-                },
-
-                fetchSpecsForModel(modelId) {
-                    this.specs = [];
-                    
-                    setTimeout(() => {
-                        const materials = ['铝合金 6061', '不锈钢 304', '工程塑料', '黄铜'];
-                        
-                        for(let i=0; i<8; i++) {
-                            const spec = {
-                                id: 'spec-' + i,
-                                '壳体编号': modelId + '-' + (100 + i),
-                                '型号全称': modelId + '-SPEC-' + (100+i),
-                                '材质': materials[Math.floor(Math.random() * materials.length)],
-                                '防护等级': ['IP65', 'IP67', 'IP68'][Math.floor(Math.random() * 3)],
-                                '状态': ['量产中', '试产'][Math.floor(Math.random() * 2)],
-                                'sortOrder': i + 1
-                            };
-                            
-                            if (i % 3 === 0) spec['特殊涂层'] = '阳极氧化';
-                            if (i % 2 === 0) spec['电压'] = '24V';
-                            if (i === 0) spec['定制字段'] = '仅第一条有';
-                            
-                            this.specs.push(spec);
+                    this.models = [
+                        {
+                            id: 'm1',
+                            seriesId: '1-1-1',
+                            name: '599-YX系列',
+                            code: '599-YX',
+                            order: 0,
+                            features: { '镀层': '镀金', '防护等级': 'IP67', '电压': '500V', '电流': '13A', '耐插拔': '500次' },
+                            seriesImage: null,
+                            shells: [
+                                { code: 'A', variants: [{ model: '599-A-YX', uniqueId: '21E5-9014-13468' }] }
+                            ],
+                            editingName: false
                         }
-                    }, 100);
+                    ];
+                    
+                    this.saveToLocalStorage();
+                },
+                
+                // 递归渲染树形节点
+                renderTreeItem(item, index, parentArray, level = 0) {
+                    const isFolder = item.type === 'folder';
+                    const hasChildren = item.children && item.children.length > 0;
+                    const indent = level * 16;
+                    
+                    let html = '';
+                    
+                    html += `<div class="tree-item" style="margin-left: ${indent}px">`;
+                    html += `<div class="tree-node">`;
+                    
+                    if (isFolder) {
+                        // 文件夹节点
+                        html += `<div class="flex items-center gap-1 py-1 px-1.5 rounded hover:bg-slate-100 transition-colors ${item.expanded ? 'folder-expanded' : ''}">`;
+                        
+                        html += `<button @click="toggleExpand(findItemById('${item.id}'))" 
+                                  class="w-4 h-4 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-transform"
+                                  :class="findItemById('${item.id}')?.expanded ? 'rotate-90' : ''">`;
+                        html += `<i class="fas fa-chevron-right text-[10px]"></i>`;
+                        html += `</button>`;
+                        
+                        html += `<div class="flex-1 flex items-center gap-1.5 min-w-0" @dblclick="startEdit(findItemById('${item.id}'))">`;
+                        html += `<i class="fas ${item.expanded ? 'fa-folder-open text-blue-400' : 'fa-folder text-blue-300'}" style="font-size: 11px;"></i>`;
+                        
+                        // 编辑输入框
+                        html += `<input x-show="editingId === '${item.id}'" 
+                                       x-model="editingName"
+                                       @blur="saveEdit(findItemById('${item.id}'))"
+                                       @keydown.enter="saveEdit(findItemById('${item.id}'))"
+                                       @keydown.escape="cancelEdit()"
+                                       class="inline-input"
+                                       type="text">`;
+                        
+                        html += `<span x-show="editingId !== '${item.id}'" 
+                                      x-text="findItemById('${item.id}')?.name" 
+                                      class="flex-1 text-[13px] truncate"></span>`;
+                        html += `</div>`;
+                        
+                        html += `<div class="tree-actions flex items-center gap-0.5">`;
+                        html += `<button @click="addFolder(findItemById('${item.id}'))" class="w-5 h-5 hover:bg-blue-100 rounded flex items-center justify-center text-blue-500" title="添加子文件夹">
+                                    <i class="fas fa-folder-plus text-[10px]"></i>
+                                 </button>`;
+                        html += `<button @click="addSeries(findItemById('${item.id}'))" class="w-5 h-5 hover:bg-green-100 rounded flex items-center justify-center text-green-500" title="添加系列">
+                                    <i class="fas fa-microchip text-[10px]"></i>
+                                 </button>`;
+                        html += `<button @click="insertBefore(findParentArray('${item.id}'), findItemIndex('${item.id}'))" class="w-5 h-5 hover:bg-slate-200 rounded flex items-center justify-center text-slate-400">
+                                    <i class="fas fa-level-up-alt text-[10px]"></i>
+                                 </button>`;
+                        html += `<button @click="deleteItem(findParentArray('${item.id}'), findItemIndex('${item.id}'))" class="w-5 h-5 hover:bg-red-100 rounded flex items-center justify-center text-red-400">
+                                    <i class="fas fa-trash text-[10px]"></i>
+                                 </button>`;
+                        html += `</div>`;
+                        html += `</div>`;
+                        
+                        // 子节点
+                        if (hasChildren) {
+                            html += `<div x-show="findItemById('${item.id}')?.expanded" x-collapse class="tree-children space-y-0.5 mt-0.5">`;
+                            item.children.forEach((child, childIndex) => {
+                                html += this.renderTreeItem(child, childIndex, item.children, level + 1);
+                            });
+                            html += `</div>`;
+                        }
+                    } else {
+                        // 系列节点
+                        html += `<div class="flex items-center gap-1 py-1 px-1.5 rounded hover:bg-slate-100 transition-colors cursor-pointer min-w-0 ${this.selectedSeries?.id === item.id ? 'series-selected' : ''}"
+                                  @click="selectSeries(findItemById('${item.id}'))">`;
+                        html += `<div class="w-4"></div>`;
+                        
+                        html += `<div class="flex-1 flex items-center gap-1.5 min-w-0" @dblclick.stop="startEdit(findItemById('${item.id}'))">`;
+                        html += `<i class="fas fa-microchip ${this.selectedSeries?.id === item.id ? 'text-blue-500' : 'text-slate-400'}" style="font-size: 11px;"></i>`;
+                        
+                        html += `<input x-show="editingId === '${item.id}'" 
+                                       x-model="editingName"
+                                       @blur="saveEdit(findItemById('${item.id}'))"
+                                       @keydown.enter="saveEdit(findItemById('${item.id}'))"
+                                       @keydown.escape="cancelEdit()"
+                                       class="inline-input"
+                                       type="text">`;
+                        
+                        html += `<span x-show="editingId !== '${item.id}'" 
+                                      x-text="findItemById('${item.id}')?.name" 
+                                      class="flex-1 text-[13px] truncate font-medium"></span>`;
+                        html += `</div>`;
+                        
+                        html += `<div class="tree-actions flex items-center gap-0.5">`;
+                        html += `<button @click.stop="insertBefore(findParentArray('${item.id}'), findItemIndex('${item.id}'))" class="w-5 h-5 hover:bg-slate-200 rounded flex items-center justify-center text-slate-400">
+                                    <i class="fas fa-level-up-alt text-[10px]"></i>
+                                 </button>`;
+                        html += `<button @click.stop="deleteItem(findParentArray('${item.id}'), findItemIndex('${item.id}'))" class="w-5 h-5 hover:bg-red-100 rounded flex items-center justify-center text-red-400">
+                                    <i class="fas fa-trash text-[10px]"></i>
+                                 </button>`;
+                        html += `</div>`;
+                        html += `</div>`;
+                    }
+                    
+                    html += `</div>`;
+                    html += `</div>`;
+                    
+                    return html;
+                },
+                
+                // 辅助函数
+                findItemById(id, items = this.categories) {
+                    for (let item of items) {
+                        if (item.id === id) return item;
+                        if (item.children) {
+                            const found = this.findItemById(id, item.children);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                },
+                
+                findParentArray(id, items = this.categories, parent = null) {
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].id === id) return parent || items;
+                        if (items[i].children) {
+                            const found = this.findParentArray(id, items[i].children, items[i].children);
+                            if (found) return found;
+                        }
+                    }
+                    return null;
+                },
+                
+                findItemIndex(id) {
+                    const parentArray = this.findParentArray(id);
+                    if (!parentArray) return -1;
+                    return parentArray.findIndex(item => item.id === id);
+                },
+                
+                // 计算属性
+                get currentModels() {
+                    if (!this.selectedSeries) return [];
+                    return this.models
+                        .filter(m => m.seriesId === this.selectedSeries.id)
+                        .sort((a, b) => (a.order || 0) - (b.order || 0));
+                },
+                
+                get filteredModels() {
+                    let models = this.currentModels;
+                    
+                    // 应用列筛选
+                    Object.keys(this.columnFilters).forEach(col => {
+                        const selectedValues = this.columnFilters[col];
+                        if (selectedValues && selectedValues.length > 0) {
+                            models = models.filter(m => {
+                                const val = m.features[col] || '';
+                                return selectedValues.includes(val);
+                            });
+                        }
+                    });
+                    
+                    return models;
+                },
+                
+                get breadcrumbPath() {
+                    if (!this.selectedSeries) return '';
+                    
+                    const findPath = (items, targetId, currentPath) => {
+                        for (let item of items) {
+                            const newPath = [...currentPath, item.name];
+                            if (item.id === targetId) {
+                                return newPath;
+                            }
+                            if (item.children) {
+                                const found = findPath(item.children, targetId, newPath);
+                                if (found) return found;
+                            }
+                        }
+                        return null;
+                    };
+                    
+                    const result = findPath(this.categories, this.selectedSeries.id, []);
+                    return result ? result.join(' > ') : '';
+                },
+                
+                // 树形操作
+                toggleExpand(item) {
+                    if (item) item.expanded = !item.expanded;
+                },
+                
+                selectSeries(series) {
+                    if (!series) return;
+                    this.selectedSeries = series;
+                    this.selectedModel = null;
+                    this.closeAllFilters();
+                },
+                
+                startEdit(item) {
+                    if (!item) return;
+                    this.editingId = item.id;
+                    this.editingName = item.name;
+                },
+                
+                saveEdit(item) {
+                    if (!item) return;
+                    if (this.editingName.trim()) {
+                        item.name = this.editingName.trim();
+                        this.saveToLocalStorage();
+                    }
+                    this.editingId = null;
+                    this.editingName = '';
+                },
+                
+                cancelEdit() {
+                    this.editingId = null;
+                    this.editingName = '';
+                },
+                
+                addFolder(parent) {
+                    if (!parent) return;
+                    const newFolder = {
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                        name: '新建文件夹',
+                        type: 'folder',
+                        expanded: false,
+                        children: []
+                    };
+                    if (!parent.children) parent.children = [];
+                    parent.children.push(newFolder);
+                    parent.expanded = true;
+                    this.saveToLocalStorage();
+                    this.$nextTick(() => {
+                        this.startEdit(newFolder);
+                    });
+                },
+                
+                addSeries(parent) {
+                    if (!parent) return;
+                    const newSeries = {
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                        name: '新建系列',
+                        type: 'series',
+                        expanded: false,
+                        children: []
+                    };
+                    if (!parent.children) parent.children = [];
+                    parent.children.push(newSeries);
+                    parent.expanded = true;
+                    this.saveToLocalStorage();
+                    this.$nextTick(() => {
+                        this.startEdit(newSeries);
+                    });
+                },
+                
+                addRootFolder() {
+                    const newFolder = {
+                        id: Date.now().toString(),
+                        name: '新建领域',
+                        type: 'folder',
+                        expanded: false,
+                        children: []
+                    };
+                    this.categories.push(newFolder);
+                    this.saveToLocalStorage();
+                    this.$nextTick(() => {
+                        this.startEdit(newFolder);
+                    });
+                },
+                
+                insertBefore(array, index) {
+                    if (!array || index < 0) return;
+                    const newItem = {
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                        name: '新建项',
+                        type: 'folder',
+                        expanded: false,
+                        children: []
+                    };
+                    array.splice(index, 0, newItem);
+                    this.saveToLocalStorage();
+                    this.$nextTick(() => {
+                        this.startEdit(newItem);
+                    });
+                },
+                
+                deleteItem(array, index) {
+                    if (!array || index < 0) return;
+                    const item = array[index];
+                    if (!confirm(`确定删除 "${item.name}"?`)) return;
+                    array.splice(index, 1);
+                    if (this.selectedSeries?.id === item.id) {
+                        this.selectedSeries = null;
+                        this.selectedModel = null;
+                    }
+                    this.saveToLocalStorage();
+                },
+                
+                // 表格排序和列宽调整初始化
+                initSortable() {
+                    const tbody = document.getElementById('modelTableBody');
+                    const headerRow = document.getElementById('tableHeader');
+                    
+                    // 行排序 - 修正：使用data属性识别行
+                    if (tbody && typeof Sortable !== 'undefined') {
+                        Sortable.create(tbody, {
+                            handle: '.handle',
+                            animation: 150,
+                            ghostClass: 'sortable-ghost',
+                            dragClass: 'sortable-drag',
+                            onStart: (evt) => {
+                                // 排除新增行按钮
+                                if (evt.item.id === 'addNewRowBtn') {
+                                    evt.preventDefault();
+                                }
+                            },
+                            onMove: (evt) => {
+                                // 禁止拖动到新增行按钮之后
+                                return evt.related.id !== 'addNewRowBtn';
+                            },
+                            onEnd: (evt) => {
+                                if (evt.newIndex >= this.currentModels.length) return;
+                                
+                                // 获取实际移动的模型ID
+                                const movedId = evt.item.getAttribute('data-model-id');
+                                const movedModel = this.models.find(m => m.id === movedId);
+                                
+                                if (!movedModel) return;
+                                
+                                // 重新计算所有模型的order
+                                const rows = tbody.querySelectorAll('tr[data-model-id]');
+                                rows.forEach((row, idx) => {
+                                    const modelId = row.getAttribute('data-model-id');
+                                    const model = this.models.find(m => m.id === modelId);
+                                    if (model) {
+                                        model.order = idx;
+                                    }
+                                });
+                                
+                                this.saveToLocalStorage();
+                            }
+                        });
+                    }
+                    
+                    // 列排序 - 修正：只对动态列启用拖拽
+                    if (headerRow && typeof Sortable !== 'undefined') {
+                        // 先给动态列添加col-header类
+                        const ths = headerRow.querySelectorAll('th');
+                        ths.forEach((th, idx) => {
+                            if (idx >= 2 && idx < ths.length - 1) {
+                                th.classList.add('col-header');
+                            }
+                        });
+                        
+                        Sortable.create(headerRow, {
+                            animation: 150,
+                            handle: '.col-header',
+                            ghostClass: 'sortable-ghost',
+                            filter: '.handle-col, th:first-child, th:nth-child(2), th:last-child',
+                            preventOnFilter: true,
+                            onStart: () => {
+                                this.closeAllFilters();
+                            },
+                            onEnd: (evt) => {
+                                const ths = headerRow.querySelectorAll('th');
+                                let oldDynamicIdx = -1;
+                                let newDynamicIdx = -1;
+                                
+                                // 计算动态列的实际索引
+                                let dynamicCount = 0;
+                                ths.forEach((th, idx) => {
+                                    if (idx >= 2 && idx < ths.length - 1) {
+                                        if (idx === evt.oldIndex) oldDynamicIdx = dynamicCount;
+                                        if (idx === evt.newIndex) newDynamicIdx = dynamicCount;
+                                        dynamicCount++;
+                                    }
+                                });
+                                
+                                if (oldDynamicIdx >= 0 && newDynamicIdx >= 0 && 
+                                    oldDynamicIdx < this.dynamicColumns.length && 
+                                    newDynamicIdx < this.dynamicColumns.length) {
+                                    const moved = this.dynamicColumns.splice(oldDynamicIdx, 1)[0];
+                                    this.dynamicColumns.splice(newDynamicIdx, 0, moved);
+                                    this.saveToLocalStorage();
+                                }
+                            }
+                        });
+                    }
+                },
+                
+                // 列宽调整
+                initColumnResize() {
+                    const table = document.getElementById('modelTable');
+                    if (!table) return;
+                    
+                    document.addEventListener('mousemove', (e) => {
+                        if (this.resizingCol !== null) {
+                            const diff = e.clientX - this.startX;
+                            const newWidth = Math.max(60, this.startWidth + diff);
+                            if (this.dynamicColumns[this.resizingCol]) {
+                                this.dynamicColumns[this.resizingCol].width = newWidth;
+                            }
+                        }
+                    });
+                    
+                    document.addEventListener('mouseup', () => {
+                        if (this.resizingCol !== null) {
+                            this.resizingCol = null;
+                            this.saveToLocalStorage();
+                        }
+                    });
+                },
+                
+                startResize(e, colIndex) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.resizingCol = colIndex;
+                    this.startX = e.clientX;
+                    this.startWidth = this.dynamicColumns[colIndex].width || 100;
+                },
+                
+                // 系列型号改名
+                editModelName(model, event) {
+                    event.stopPropagation();
+                    model.editingName = true;
+                    this.$nextTick(() => {
+                        const input = event.currentTarget.querySelector('input');
+                        if (input) {
+                            input.focus();
+                            input.select();
+                        }
+                    });
+                },
+                
+                saveModelName(model) {
+                    model.editingName = false;
+                    this.saveToLocalStorage();
+                },
+                
+                // 列操作
+                startAddColumn() {
+                    this.addingColumn = true;
+                    this.newColumnName = '';
+                    this.$nextTick(() => {
+                        if (this.$refs.newColInput) this.$refs.newColInput.focus();
+                    });
+                },
+                
+                confirmAddColumn() {
+                    if (this.newColumnName.trim()) {
+                        this.dynamicColumns.push({ 
+                            name: this.newColumnName.trim(),
+                            width: 100 
+                        });
+                        this.saveToLocalStorage();
+                        this.$nextTick(() => {
+                            this.initSortable();
+                        });
+                    }
+                    this.addingColumn = false;
+                    this.newColumnName = '';
+                },
+                
+                // 筛选功能 - 修正：使用独立的toggle方法
+                toggleFilter(colName) {
+                    this.activeFilter = this.activeFilter === colName ? null : colName;
+                },
+                
+                closeAllFilters() {
+                    this.activeFilter = null;
+                },
+                
+                getUniqueValues(colName) {
+                    const values = new Set();
+                    this.currentModels.forEach(m => {
+                        values.add(m.features[colName] || '');
+                    });
+                    return Array.from(values).sort();
+                },
+                
+                isAllSelected(colName) {
+                    const values = this.getUniqueValues(colName);
+                    const selected = this.columnFilters[colName] || [];
+                    return values.length > 0 && values.length === selected.length;
+                },
+                
+                toggleSelectAll(colName) {
+                    const values = this.getUniqueValues(colName);
+                    const current = this.columnFilters[colName] || [];
+                    
+                    if (this.isAllSelected(colName)) {
+                        // 如果已全选，则清空
+                        this.columnFilters[colName] = [];
+                    } else {
+                        // 否则全选
+                        this.columnFilters[colName] = [...values];
+                    }
+                },
+                
+                toggleFilterValue(colName, value) {
+                    // 初始化数组如果不存在
+                    if (!this.columnFilters[colName]) {
+                        this.columnFilters[colName] = [];
+                    }
+                    
+                    const idx = this.columnFilters[colName].indexOf(value);
+                    if (idx > -1) {
+                        // 已选中，移除
+                        this.columnFilters[colName].splice(idx, 1);
+                    } else {
+                        // 未选中，添加
+                        this.columnFilters[colName].push(value);
+                    }
+                },
+                
+                clearFilter(colName) {
+                    delete this.columnFilters[colName];
+                    this.activeFilter = null;
+                },
+                
+                // 行操作
+                addNewRow() {
+                    const newModel = {
+                        id: 'm' + Date.now(),
+                        seriesId: this.selectedSeries.id,
+                        name: '新型号',
+                        code: 'NEW',
+                        order: this.currentModels.length,
+                        features: {},
+                        seriesImage: null,
+                        shells: [],
+                        editingName: false
+                    };
+                    this.models.push(newModel);
+                    this.saveToLocalStorage();
+                    
+                    this.$nextTick(() => {
+                        const rows = document.querySelectorAll('#modelTableBody tr[data-model-id]');
+                        const lastRow = rows[rows.length - 1];
+                        if (lastRow) {
+                            const firstInput = lastRow.querySelector('input');
+                            if (firstInput) {
+                                firstInput.focus();
+                                firstInput.select();
+                            }
+                        }
+                    });
+                },
+                
+                // 右键菜单
+                showContextMenu(event, index) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    this.contextMenu = {
+                        show: true,
+                        x: event.clientX,
+                        y: event.clientY,
+                        index: index
+                    };
+                },
+                
+                hideContextMenu() {
+                    this.contextMenu.show = false;
+                },
+                
+                addRowAt(index, position) {
+                    const newModel = {
+                        id: 'm' + Date.now(),
+                        seriesId: this.selectedSeries.id,
+                        name: '新型号',
+                        code: 'NEW',
+                        order: 0,
+                        features: {},
+                        seriesImage: null,
+                        shells: [],
+                        editingName: false
+                    };
+                    
+                    const models = this.currentModels;
+                    const insertIdx = position === 'above' ? index : index + 1;
+                    
+                    const targetModel = models[index];
+                    const allModelsIdx = this.models.findIndex(m => m.id === targetModel.id);
+                    const actualInsertIdx = position === 'above' ? allModelsIdx : allModelsIdx + 1;
+                    
+                    this.models.splice(actualInsertIdx, 0, newModel);
+                    
+                    // 重新排序
+                    this.currentModels.forEach((m, idx) => m.order = idx);
+                    
+                    this.saveToLocalStorage();
+                    this.hideContextMenu();
+                    
+                    this.$nextTick(() => {
+                        const rows = document.querySelectorAll('#modelTableBody tr[data-model-id]');
+                        const targetRow = rows[insertIdx];
+                        if (targetRow) {
+                            const firstInput = targetRow.querySelector('input');
+                            if (firstInput) {
+                                firstInput.focus();
+                                firstInput.select();
+                            }
+                        }
+                    });
+                },
+                
+                deleteRowAt(index) {
+                    if (!confirm('确定删除此行?')) {
+                        this.hideContextMenu();
+                        return;
+                    }
+                    const model = this.currentModels[index];
+                    this.models = this.models.filter(m => m.id !== model.id);
+                    if (this.selectedModel?.id === model.id) this.selectedModel = null;
+                    
+                    this.currentModels.forEach((m, idx) => m.order = idx);
+                    
+                    this.saveToLocalStorage();
+                    this.hideContextMenu();
+                },
+                
+                selectModel(model) {
+                    this.selectedModel = model;
+                    this.closeAllFilters();
+                },
+                
+                // 壳体号内嵌添加
+                startAddShell() {
+                    this.addingShell = true;
+                    this.newShellCode = '';
+                    this.$nextTick(() => {
+                        if (this.$refs.shellInput) this.$refs.shellInput.focus();
+                    });
+                },
+                
+                confirmAddShell() {
+                    if (this.newShellCode.trim()) {
+                        if (!this.selectedModel.shells) this.selectedModel.shells = [];
+                        this.selectedModel.shells.push({ 
+                            code: this.newShellCode.trim(), 
+                            variants: [] 
+                        });
+                        this.saveToLocalStorage();
+                    }
+                    this.addingShell = false;
+                    this.newShellCode = '';
+                },
+                
+                cancelAddShell() {
+                    this.addingShell = false;
+                    this.newShellCode = '';
+                },
+                
+                removeShellType(index) {
+                    if (!confirm('删除此壳体号?')) return;
+                    this.selectedModel.shells.splice(index, 1);
+                    this.saveToLocalStorage();
+                },
+                
+                addVariant(shell) {
+                    shell.variants.push({ model: '', uniqueId: '' });
+                    this.saveToLocalStorage();
+                },
+                
+                removeVariant(shell, index) {
+                    shell.variants.splice(index, 1);
+                    this.saveToLocalStorage();
+                },
+                
+                // 图片
+                handleImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.selectedModel.seriesImage = e.target.result;
+                            this.saveToLocalStorage();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+                
+                handleImageDrop(event) {
+                    event.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                    const file = event.dataTransfer.files[0];
+                    if (file?.type?.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.selectedModel.seriesImage = e.target.result;
+                            this.saveToLocalStorage();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+                
+                // CSV 导出导入
+                exportCSV() {
+                    if (!this.selectedSeries) {
+                        alert('请先选择系列');
+                        return;
+                    }
+                    
+                    const headers = ['型号名称', '型号编码', ...this.dynamicColumns.map(c => c.name)];
+                    const rows = this.currentModels.map(m => [
+                        m.name,
+                        m.code,
+                        ...this.dynamicColumns.map(c => m.features[c.name] || '')
+                    ]);
+                    
+                    const csvContent = [
+                        headers.join(','),
+                        ...rows.map(row => row.map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`).join(','))
+                    ].join('\n');
+                    
+                    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `${this.selectedSeries.name}_型号数据.csv`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                },
+                
+                importCSV(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const text = e.target.result;
+                        const lines = text.split('\n').filter(l => l.trim());
+                        if (lines.length < 2) {
+                            alert('CSV文件格式错误');
+                            return;
+                        }
+                        
+                        const headers = this.parseCSVLine(lines[0]);
+                        const nameIdx = headers.indexOf('型号名称');
+                        const codeIdx = headers.indexOf('型号编码');
+                        
+                        if (nameIdx === -1 || codeIdx === -1) {
+                            alert('CSV必须包含"型号名称"和"型号编码"列');
+                            return;
+                        }
+                        
+                        const dynamicColIndices = this.dynamicColumns.map(col => ({
+                            col: col,
+                            idx: headers.indexOf(col.name)
+                        })).filter(item => item.idx !== -1);
+                        
+                        let imported = 0;
+                        for (let i = 1; i < lines.length; i++) {
+                            const values = this.parseCSVLine(lines[i]);
+                            if (values.length < 2) continue;
+                            
+                            const features = {};
+                            dynamicColIndices.forEach(({ col, idx }) => {
+                                if (idx < values.length) {
+                                    features[col.name] = values[idx];
+                                }
+                            });
+                            
+                            this.models.push({
+                                id: 'm' + Date.now() + '_' + i,
+                                seriesId: this.selectedSeries.id,
+                                name: values[nameIdx] || '',
+                                code: values[codeIdx] || '',
+                                order: this.currentModels.length + imported,
+                                features: features,
+                                seriesImage: null,
+                                shells: [],
+                                editingName: false
+                            });
+                            imported++;
+                        }
+                        
+                        this.saveToLocalStorage();
+                        alert(`成功导入 ${imported} 条数据`);
+                    };
+                    reader.readAsText(file);
+                    event.target.value = '';
+                },
+                
+                parseCSVLine(line) {
+                    const result = [];
+                    let current = '';
+                    let inQuotes = false;
+                    
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+                        const nextChar = line[i + 1];
+                        
+                        if (char === '"') {
+                            if (inQuotes && nextChar === '"') {
+                                current += '"';
+                                i++;
+                            } else {
+                                inQuotes = !inQuotes;
+                            }
+                        } else if (char === ',' && !inQuotes) {
+                            result.push(current.trim());
+                            current = '';
+                        } else {
+                            current += char;
+                        }
+                    }
+                    result.push(current.trim());
+                    return result;
+                },
+                
+                // 数据持久化
+                saveToLocalStorage() {
+                    localStorage.setItem('modelManagerData_v6', JSON.stringify({
+                        categories: this.categories,
+                        models: this.models,
+                        dynamicColumns: this.dynamicColumns,
+                        columnFilters: this.columnFilters
+                    }));
+                },
+                
+                loadFromLocalStorage() {
+                    const saved = localStorage.getItem('modelManagerData_v6');
+                    if (saved) {
+                        try {
+                            const data = JSON.parse(saved);
+                            this.categories = data.categories || [];
+                            this.models = data.models || [];
+                            if (data.dynamicColumns) this.dynamicColumns = data.dynamicColumns;
+                            if (data.columnFilters) this.columnFilters = data.columnFilters;
+                        } catch (e) {
+                            console.error('加载失败', e);
+                        }
+                    }
                 }
             }
         }
